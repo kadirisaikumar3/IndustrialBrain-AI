@@ -318,13 +318,25 @@ DOCUMENT:
             @PathVariable Long id,
             @RequestBody String question) {
 
+                System.out.println("========== askDocument() CALLED ==========");
+
+                System.out.println("Document ID: " + id);
+System.out.println("Question: " + question);
+
         Authentication authentication =
         SecurityContextHolder.getContext().getAuthentication();
 
 User user = (User) authentication.getPrincipal();
 
+System.out.println("Authenticated User ID: " + user.getId());
+System.out.println("Looking up document ID: " + id);
+
+
+
 Optional<Document> optionalDocument =
         documentService.getDocumentByIdAndUser(id, user);
+
+        System.out.println("Document found: " + optionalDocument.isPresent());
 
 if (optionalDocument.isEmpty()) {
     return ResponseEntity.status(404).build();
@@ -332,8 +344,15 @@ if (optionalDocument.isEmpty()) {
 
 Document document = optionalDocument.get();
 
+
+System.out.println("Owner ID: " + document.getUser().getId());
+System.out.println("File Path: " + document.getFilePath());
+
         String extractedText =
                 pdfService.extractText(document.getFilePath());
+
+                System.out.println("Extracted text length: " + extractedText.length());
+System.out.println(extractedText.substring(0, Math.min(200, extractedText.length())));
 
         if (extractedText == null ||
                 extractedText.startsWith("Error")) {
