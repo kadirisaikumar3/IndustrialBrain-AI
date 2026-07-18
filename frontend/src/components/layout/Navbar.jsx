@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 function Navbar() {
   return (
-    <nav className="w-full bg-slate-950 border-b border-slate-800">
+    <nav className="w-full bg-theme border-b border-theme">
       <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
 
         {/* Logo */}
@@ -14,11 +14,11 @@ function Navbar() {
           />
 
           <div>
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className="text-2xl font-bold text-primary">
               IndustrialBrain AI
             </h1>
 
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-secondary">
               Industrial Knowledge Intelligence
             </p>
           </div>
@@ -26,7 +26,7 @@ function Navbar() {
 
         {/* Navigation */}
 
-        <ul className="hidden md:flex gap-8 text-slate-300 font-medium">
+        <ul className="hidden md:flex gap-8 text-secondary font-medium">
 
           <li>
             <Link to="/" className="hover:text-cyan-400 transition">

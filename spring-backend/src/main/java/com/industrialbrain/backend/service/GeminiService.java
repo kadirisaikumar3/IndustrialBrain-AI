@@ -3,6 +3,7 @@ package com.industrialbrain.backend.service;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class GeminiService {
@@ -10,7 +11,8 @@ public class GeminiService {
     private final GeminiClientProvider provider;
 
     // Gemini model
-    private static final String MODEL = "gemini-3.5-flash";
+    @Value("${gemini.model}")
+private String model;
 
     public GeminiService(GeminiClientProvider provider) {
         this.provider = provider;
@@ -51,12 +53,14 @@ public class GeminiService {
 
                     Client client = provider.getClient(apiKey);
 
+                    System.out.println("Model : " + model);
+                    
                     GenerateContentResponse response =
-                            client.models.generateContent(
-                                    MODEL,
-                                    prompt,
-                                    null
-                            );
+        client.models.generateContent(
+                model,
+                prompt,
+                null
+        );
 
                     if (response != null
                             && response.text() != null

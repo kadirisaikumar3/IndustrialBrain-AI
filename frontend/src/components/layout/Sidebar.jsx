@@ -40,9 +40,9 @@ function Sidebar() {
   const location = useLocation();
 
   return (
-    <aside className="w-80 min-h-screen bg-slate-950 border-r border-slate-800">
+    <aside className="w-80 min-h-screen sidebar-bg">
 
-      <div className="flex items-center gap-3 p-6 border-b border-slate-800">
+      <div className="flex items-center gap-3 p-6 sidebar-header">
 
         <BrainCircuit
           size={34}
@@ -50,11 +50,11 @@ function Sidebar() {
         />
 
         <div>
-          <h1 className="text-white text-xl font-bold">
+          <h1 className="sidebar-title text-xl font-bold">
             IndustrialBrain AI
           </h1>
 
-          <p className="text-slate-400 text-xs">
+          <p className="sidebar-subtitle text-xs">
             AI Knowledge Platform
           </p>
         </div>
@@ -75,8 +75,8 @@ function Sidebar() {
               to={item.path}
               className={`flex items-center gap-4 px-4 py-4 rounded-xl mb-3 transition ${
                 active
-                  ? "bg-cyan-500 text-slate-900 font-semibold"
-                  : "text-slate-300 hover:bg-slate-800"
+                  ? "sidebar-link-active"
+                  : "sidebar-link"
               }`}
             >
               <Icon size={22} />

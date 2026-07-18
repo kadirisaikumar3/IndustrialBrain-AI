@@ -6,6 +6,7 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -17,6 +18,9 @@ public class JwtService {
     private String secret;
 
     private Key getSigningKey() {
+
+        System.out.println("JWT Secret Length : " + secret.length());
+
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
@@ -30,5 +34,39 @@ public class JwtService {
                 )
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public String extractEmail(String token) {
+
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+
+    public boolean validateToken(String token) {
+
+        try {
+
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            System.out.println("Token Expiration : " + claims.getExpiration());
+            System.out.println("Current Time     : " + new Date());
+
+            return claims.getExpiration().after(new Date());
+
+        } catch (Exception e) {
+
+            System.out.println("JWT VALIDATION ERROR");
+            e.printStackTrace();
+
+            return false;
+        }
     }
 }

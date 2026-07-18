@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import API from "../../services/api";
 
+import { useTheme } from "../../context/ThemeContext";
+import AppLayout from "../../components/layout/AppLayout";
+
 import {
   User,
   BrainCircuit,
@@ -11,12 +14,14 @@ import {
 } from "lucide-react";
 
 function Settings() {
-  const [stats, setStats] = useState({
+  const [stats, setStats] =useState({
     totalDocuments: 0,
     pdfCount: 0,
     imageCount: 0,
     storageUsed: "0 MB",
   });
+
+  const { theme, toggleTheme } = useTheme();
 
   const profile = {
     name: "Saikumar",
@@ -37,99 +42,183 @@ function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-8">
-      <h1 className="text-4xl font-bold mb-8">⚙️ Settings</h1>
+    <AppLayout>
+      <div className="mx-auto max-w-7xl">
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Header */}
 
-        {/* Profile */}
-        <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-          <div className="flex items-center gap-3 mb-5">
-            <User className="text-cyan-400" size={28} />
-            <h2 className="text-2xl font-semibold">Profile</h2>
-          </div>
+        <div className="rounded-3xl bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 p-8 shadow-2xl">
+          <h1 className="text-5xl font-extrabold text-primary">
+            ⚙️ Settings
+          </h1>
 
-          <p className="mb-2">
-            <strong>Name:</strong> {profile.name}
-          </p>
-
-          <p>
-            <strong>Role:</strong> {profile.role}
+          <p className="mt-4 text-lg text-blue-100">
+            Manage your profile, AI configuration, storage, API status, and application appearance.
           </p>
         </div>
 
-        {/* AI Model */}
-        <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-          <div className="flex items-center gap-3 mb-5">
-            <BrainCircuit className="text-green-400" size={28} />
-            <h2 className="text-2xl font-semibold">AI Model</h2>
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+          {/* Profile */}
+
+          <div className="card-bg rounded-3xl p-6 shadow-xl">
+            <div className="mb-5 flex items-center gap-3">
+              <User
+                className="text-cyan-500"
+                size={28}
+              />
+              <h2 className="text-2xl font-bold text-primary">
+                Profile
+              </h2>
+            </div>
+
+            <p className="mb-3 text-primary">
+              <strong>Name:</strong> {profile.name}
+            </p>
+
+            <p className="text-primary">
+              <strong>Role:</strong> {profile.role}
+            </p>
           </div>
 
-          <p>Gemini 2.5 Flash</p>
+          {/* AI Model */}
 
-          <div className="flex items-center gap-2 mt-3 text-green-400">
-            <CheckCircle size={18} />
-            Connected
-          </div>
-        </div>
+          <div className="card-bg rounded-3xl p-6 shadow-xl">
+            <div className="mb-5 flex items-center gap-3">
+              <BrainCircuit
+                className="text-green-500"
+                size={28}
+              />
+              <h2 className="text-2xl font-bold text-primary">
+                AI Model
+              </h2>
+            </div>
 
-        {/* Storage */}
-        <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-          <div className="flex items-center gap-3 mb-5">
-            <Database className="text-yellow-400" size={28} />
-            <h2 className="text-2xl font-semibold">Storage</h2>
-          </div>
+            <p className="text-primary">
+              Gemini 2.5 Flash
+            </p>
 
-          <p className="mb-2">
-            Documents Uploaded : <strong>{stats.totalDocuments}</strong>
-          </p>
-
-          <p className="mb-2">
-            PDF Files : <strong>{stats.pdfCount}</strong>
-          </p>
-
-          <p className="mb-2">
-            Images : <strong>{stats.imageCount}</strong>
-          </p>
-
-          <p>
-            Storage Used : <strong>{stats.storageUsed}</strong>
-          </p>
-        </div>
-
-        {/* API Status */}
-        <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-          <div className="flex items-center gap-3 mb-5">
-            <Server className="text-purple-400" size={28} />
-            <h2 className="text-2xl font-semibold">API Status</h2>
+            <div className="mt-3 flex items-center gap-2 text-green-500">
+              <CheckCircle size={18} />
+              Connected
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 text-green-400">
-            <CheckCircle size={18} />
-            Backend Running
+          {/* Storage */}
+
+          <div className="card-bg rounded-3xl p-6 shadow-xl">
+            <div className="mb-5 flex items-center gap-3">
+              <Database
+                className="text-yellow-500"
+                size={28}
+              />
+              <h2 className="text-2xl font-bold text-primary">
+                Storage
+              </h2>
+            </div>
+
+            <div className="space-y-3 text-primary">
+              <p>
+                Documents Uploaded : <strong>{stats.totalDocuments}</strong>
+              </p>
+
+              <p>
+                PDF Files : <strong>{stats.pdfCount}</strong>
+              </p>
+
+              <p>
+                Images : <strong>{stats.imageCount}</strong>
+              </p>
+
+              <p>
+                Storage Used : <strong>{stats.storageUsed}</strong>
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-2 text-green-400">
-            <CheckCircle size={18} />
-            Gemini Connected
-          </div>
-        </div>
+          {/* API Status */}
 
-        {/* Theme */}
-        <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-          <div className="flex items-center gap-3 mb-5">
-            <Moon className="text-blue-400" size={28} />
-            <h2 className="text-2xl font-semibold">Theme</h2>
+          <div className="card-bg rounded-3xl p-6 shadow-xl">
+            <div className="mb-5 flex items-center gap-3">
+              <Server
+                className="text-purple-500"
+                size={28}
+              />
+              <h2 className="text-2xl font-bold text-primary">
+                API Status
+              </h2>
+            </div>
+
+            <div className="space-y-3">
+
+              <div className="flex items-center gap-2 text-green-500">
+                <CheckCircle size={18} />
+                Backend Running
+              </div>
+
+              <div className="flex items-center gap-2 text-green-500">
+                <CheckCircle size={18} />
+                Gemini Connected
+              </div>
+
+            </div>
           </div>
 
-          <p>🌙 Dark Theme</p>
-          <p className="text-sm text-slate-400 mt-2">
-            Theme switching will be implemented in the next update.
-          </p>
+          {/* Appearance */}
+
+          <div className="card-bg rounded-3xl p-6 shadow-xl lg:col-span-2">
+
+            <div className="mb-6 flex items-center gap-3">
+              <Moon
+                className="text-blue-500"
+                size={28}
+              />
+              <h2 className="text-2xl font-bold text-primary">
+                Appearance
+              </h2>
+            </div>
+
+            <div className="flex items-center justify-between rounded-2xl border border-theme p-6">
+
+              <div>
+
+                <p className="text-lg font-semibold text-primary">
+                  {theme === "dark"
+                    ? "🌙 Dark Mode"
+                    : "☀️ Light Mode"}
+                </p>
+
+                <p className="mt-2 text-secondary">
+                  Switch between light and dark themes instantly across the application.
+                </p>
+
+              </div>
+
+              <button
+                onClick={toggleTheme}
+                className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors duration-300 ${
+                  theme === "dark"
+                    ? "bg-cyan-500"
+                    : "bg-gray-400"
+                }`}
+              >
+                <span
+                  className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-300 ${
+                    theme === "dark"
+                      ? "translate-x-9"
+                      : "translate-x-1"
+                  }`}
+                />
+              </button>
+
+            </div>
+
+          </div>
+
         </div>
 
       </div>
-    </div>
+    </AppLayout>
   );
 }
 

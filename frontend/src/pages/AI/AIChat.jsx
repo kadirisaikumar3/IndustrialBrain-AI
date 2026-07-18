@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../../services/api";
 
-import Sidebar from "../../components/layout/Sidebar";
-import Topbar from "../../components/layout/Topbar";
+import AppLayout from "../../components/layout/AppLayout";
 
 function AIChat() {
 
@@ -68,9 +67,6 @@ function AIChat() {
 
       console.error("FULL ERROR:", error);
 
-      console.log("Response:", error.response);
-
-      console.log("Response Data:", error.response?.data);
 
       setAnswer(error.response?.data || "Unknown error");
 
@@ -84,49 +80,60 @@ function AIChat() {
 
   return (
 
-    <div className="flex min-h-screen bg-slate-900">
+    <AppLayout>
 
-      <Sidebar />
+      <div className="mx-auto max-w-6xl">
 
-      <div className="flex-1">
+        {/* Header */}
 
-        <Topbar />
+        <div className="rounded-3xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-700 p-8 shadow-2xl">
 
-        <main className="p-8">
+          <h1 className="text-5xl font-extrabold text-white">
+            🧠 IndustrialBrain AI Assistant
+          </h1>
 
-          <div className="mx-auto max-w-6xl">
+          <p className="mt-4 text-lg leading-8 text-cyan-100">
+            Upload engineering documents, maintenance manuals,
+            SOPs, reports and ask intelligent questions powered
+            by Google Gemini AI.
+          </p>
 
-            {/* Header */}
+        </div>
 
-            <div className="rounded-3xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-700 p-8 shadow-2xl">
+        {documents.length === 0 ? (
 
-              <h1 className="text-5xl font-extrabold text-white">
-                🧠 IndustrialBrain AI Assistant
-              </h1>
+          <div className="mt-8 rounded-3xl card-bg border border-theme p-10 text-center shadow-xl">
 
-              <p className="mt-4 text-lg leading-8 text-cyan-100">
-                Upload engineering documents, maintenance manuals,
-                SOPs, reports and ask intelligent questions powered
-                by Google Gemini AI.
-              </p>
+            <h2 className="text-2xl font-bold text-primary">
+              No Documents Available
+            </h2>
 
-            </div>
+            <p className="mt-3 text-secondary">
+              Upload a document first to start chatting with Gemini AI.
+            </p>
+
+          </div>
+
+        ) : (
+
+          <>
+
             {/* Document Selection */}
 
-            <div className="mt-8 rounded-3xl border border-slate-700 bg-slate-800 p-8 shadow-2xl">
+            <div className="mt-8 rounded-3xl card-bg border border-theme p-8 shadow-xl">
 
-              <h2 className="text-3xl font-bold text-white">
+              <h2 className="text-3xl font-bold text-primary">
                 📄 Select Document
               </h2>
 
-              <p className="mt-2 text-slate-400">
+              <p className="mt-2 text-secondary">
                 Choose the document that you want Gemini AI to analyze.
               </p>
 
               <select
                 value={selectedDocument}
                 onChange={(e) => setSelectedDocument(e.target.value)}
-                className="mt-6 w-full rounded-xl border border-slate-600 bg-slate-700 p-4 text-white outline-none transition-all focus:border-cyan-400"
+                className="mt-6 w-full rounded-xl border border-theme search-box p-4 text-primary outline-none transition-all focus:border-cyan-400"
               >
 
                 <option value="">
@@ -150,13 +157,13 @@ function AIChat() {
 
             {/* Ask Question */}
 
-            <div className="mt-8 rounded-3xl border border-slate-700 bg-slate-800 p-8 shadow-2xl">
+            <div className="mt-8 rounded-3xl card-bg border border-theme p-8 shadow-xl">
 
-              <h2 className="text-3xl font-bold text-white">
+              <h2 className="text-3xl font-bold text-primary">
                 💬 Ask Your Question
               </h2>
 
-              <p className="mt-2 text-slate-400">
+              <p className="mt-2 text-secondary">
                 Ask anything related to the selected document.
               </p>
 
@@ -164,12 +171,12 @@ function AIChat() {
                 rows={7}
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Example:
+                placeholder={`Example:
 • Summarize this document
 • Explain the key concepts
 • List interview questions
-• What are the important topics?"
-                className="mt-6 w-full rounded-2xl border border-slate-600 bg-slate-700 p-5 text-white placeholder:text-slate-400 outline-none transition-all focus:border-cyan-400"
+• What are the important topics?`}
+                className="mt-6 w-full rounded-2xl border border-theme search-box p-5 text-primary placeholder:text-secondary outline-none transition-all focus:border-cyan-400"
               />
 
               <div className="mt-8 flex justify-center">
@@ -198,21 +205,21 @@ function AIChat() {
               </div>
 
             </div>
+
             {/* AI Response */}
 
-            <div className="mt-8 rounded-3xl border border-slate-700 bg-slate-800 p-8 shadow-2xl">
+            <div className="mt-8 rounded-3xl card-bg border border-theme p-8 shadow-xl">
 
-              <h2 className="flex items-center gap-3 text-3xl font-bold text-white">
+              <h2 className="flex items-center gap-3 text-3xl font-bold text-primary">
                 🤖 AI Response
               </h2>
 
-              <p className="mt-2 text-slate-400">
+              <p className="mt-2 text-secondary">
                 Gemini AI will analyze the selected document and answer your question.
               </p>
 
-              <div className="mt-6 min-h-[380px] rounded-2xl border border-slate-700 bg-slate-900 p-6">
-
-                {loading ? (
+              <div className="mt-6 min-h-[380px] rounded-2xl border border-theme search-box p-6">
+                                {loading ? (
 
                   <div className="flex flex-col items-center justify-center py-20">
 
@@ -222,7 +229,7 @@ function AIChat() {
                       Gemini is analyzing your document...
                     </h3>
 
-                    <p className="mt-3 text-slate-400">
+                    <p className="mt-3 text-secondary">
                       Please wait while AI processes your request.
                     </p>
 
@@ -230,9 +237,9 @@ function AIChat() {
 
                 ) : answer ? (
 
-                  <div className="overflow-auto rounded-xl bg-slate-950 p-5">
+                  <div className="overflow-auto rounded-xl search-box p-5">
 
-                    <pre className="whitespace-pre-wrap font-sans text-[16px] leading-8 text-slate-200">
+                    <pre className="whitespace-pre-wrap font-sans text-[16px] leading-8 text-primary">
                       {answer}
                     </pre>
 
@@ -246,11 +253,11 @@ function AIChat() {
                       🤖
                     </div>
 
-                    <h3 className="text-3xl font-bold text-white">
+                    <h3 className="text-3xl font-bold text-primary">
                       Ready to Answer
                     </h3>
 
-                    <p className="mt-4 max-w-2xl text-center text-slate-400 leading-8">
+                    <p className="mt-4 max-w-2xl text-center text-secondary leading-8">
                       Select a document, type your question, and click
                       <span className="font-semibold text-cyan-400">
                         {" "}Ask Gemini
@@ -267,13 +274,13 @@ function AIChat() {
 
             </div>
 
-          </div>
+          </>
 
-        </main>
+        )}
 
       </div>
 
-    </div>
+    </AppLayout>
 
   );
 

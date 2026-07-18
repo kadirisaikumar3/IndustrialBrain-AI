@@ -21,13 +21,9 @@ import ReactFlow, {
 
 import "reactflow/dist/style.css";
 
-import Sidebar from "../../components/layout/Sidebar";
-import Topbar from "../../components/layout/Topbar";
+import AppLayout from "../../components/layout/AppLayout";
 
 
-/* =========================================================
-   Custom Node
-========================================================= */
 
 const CustomNode = ({ data }) => {
 
@@ -39,51 +35,49 @@ const CustomNode = ({ data }) => {
         ? "border-orange-400 shadow-[0_0_20px_#fb923c]"
         : data.highlighted
           ? "border-purple-400 shadow-[0_0_20px_#a855f7]"
-          : "border-slate-600";
+          : "border-theme";
 
- return (
-  <div
-    style={{
-      width: 220,
-      minHeight: 90,
-      background: "#2563eb",
-      color: "white",
-      border: "2px solid white",
-      borderRadius: 16,
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      fontWeight: "bold",
-      position: "relative",
-    }}
-  >
-    <Handle
-      type="target"
-      position={Position.Top}
-    />
+  return (
 
-    {data.label}
+    <div
+      className={`relative flex min-h-[90px] w-[220px] items-center justify-center rounded-2xl border-2 font-bold text-center transition-all duration-300 ${borderClass}`}
+      style={{
+        background: data.color || "linear-gradient(135deg,#2563eb,#3b82f6)",
+        color: "white",
+      }}
+    >
 
-    <Handle
-      type="source"
-      position={Position.Bottom}
-    />
-  </div>
-);
+      <Handle
+        type="target"
+        position={Position.Top}
+      />
+
+      <span className="px-3">
+        {data.label}
+      </span>
+
+      <Handle
+        type="source"
+        position={Position.Bottom}
+      />
+
+    </div>
+
+  );
+
 };
 
 const nodeTypes = {
+
   custom: CustomNode,
+
 };
-
-/* =========================================================
-   ReactFlow Configuration
-========================================================= */
-
 
 
 const fitViewOptions = {
+
   padding: 0.30,
+
 };
 
 const defaultEdgeOptions = {
@@ -93,18 +87,24 @@ const defaultEdgeOptions = {
   animated: true,
 
   style: {
+
     stroke: "#38bdf8",
+
     strokeWidth: 2.5,
+
   },
 
   markerEnd: {
+
     type: MarkerType.ArrowClosed,
+
     color: "#38bdf8",
+
   },
+
 };
-/* =========================================================
-   Knowledge Graph Component
-========================================================= */
+
+
 
 function KnowledgeGraph() {
 
@@ -140,15 +140,13 @@ function KnowledgeGraph() {
 
   const [edgeCount, setEdgeCount] = useState(0);
 
-  const [selectedDocumentName, setSelectedDocumentName] = useState("");
+  const [selectedDocumentName, setSelectedDocumentName] =
+    useState("");
 
   const graphRef = useRef(null);
+
   const reactFlowInstance = useRef(null);
-
-
-
-
-  /* -----------------------------
+    /* -----------------------------
      Load Documents
   ------------------------------ */
 
@@ -164,9 +162,9 @@ function KnowledgeGraph() {
 
   useEffect(() => {
 
-    setNodes(prev => {
+    setNodes((prev) => {
 
-      const updated = prev.map(node => ({
+      const updated = prev.map((node) => ({
 
         ...node,
 
@@ -187,25 +185,37 @@ function KnowledgeGraph() {
       }));
 
       if (
+
         searchText.trim() !== "" &&
+
         reactFlowInstance.current
+
       ) {
 
-        const foundNode = updated.find(node =>
+        const foundNode = updated.find((node) =>
+
           node.data.label
             .toLowerCase()
             .includes(searchText.toLowerCase())
+
         );
 
         if (foundNode) {
 
           reactFlowInstance.current.setCenter(
+
             foundNode.position.x,
+
             foundNode.position.y,
+
             {
+
               zoom: 1.4,
+
               duration: 700,
+
             }
+
           );
 
         }
@@ -217,6 +227,7 @@ function KnowledgeGraph() {
     });
 
   }, [searchText]);
+
   /* -----------------------------
      Export PNG
   ------------------------------ */
@@ -224,20 +235,26 @@ function KnowledgeGraph() {
   const exportGraph = async () => {
 
     if (!reactFlowInstance.current || !graphRef.current) return;
-
-    try {
+        try {
 
       const nodesBounds = getNodesBounds(nodes);
 
       const viewport = getViewportForBounds(
+
         nodesBounds,
+
         nodesBounds.width + 400,
+
         nodesBounds.height + 400,
+
         0.5,
+
         2
+
       );
 
       // Save current transform
+
       const reactFlowViewport =
         graphRef.current.querySelector(".react-flow__viewport");
 
@@ -247,7 +264,9 @@ function KnowledgeGraph() {
         reactFlowViewport.style.transform;
 
       const previousWidth = graphRef.current.style.width;
+
       const previousHeight = graphRef.current.style.height;
+
       const previousOverflow = graphRef.current.style.overflow;
 
       reactFlowViewport.style.transform = `
@@ -255,9 +274,14 @@ translate(${viewport.x}px, ${viewport.y}px)
 scale(${viewport.zoom})
 `;
 
-      graphRef.current.style.width = `${nodesBounds.width + 400}px`;
-      graphRef.current.style.height = `${nodesBounds.height + 400}px`;
+      graphRef.current.style.width =
+        `${nodesBounds.width + 400}px`;
+
+      graphRef.current.style.height =
+        `${nodesBounds.height + 400}px`;
+
       graphRef.current.style.overflow = "visible";
+
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const dataUrl = await toPng(graphRef.current, {
@@ -283,9 +307,13 @@ scale(${viewport.zoom})
       });
 
       // Restore original transform
+
       reactFlowViewport.style.transform = previousTransform;
+
       graphRef.current.style.width = previousWidth;
+
       graphRef.current.style.height = previousHeight;
+
       graphRef.current.style.overflow = previousOverflow;
 
       download(dataUrl, "knowledge-graph.png");
@@ -315,6 +343,7 @@ scale(${viewport.zoom})
     });
 
   };
+
   /* -----------------------------
      Dagre Layout
   ------------------------------ */
@@ -324,8 +353,7 @@ scale(${viewport.zoom})
   ------------------------------ */
 
   const loadDocuments = async () => {
-
-    try {
+        try {
 
       const response = await API.get("/dashboard/documents");
 
@@ -340,9 +368,8 @@ scale(${viewport.zoom})
     }
 
   };
-  /* =========================================================
-   Generate Knowledge Graph
-========================================================= */
+
+ 
 
   const loadGraph = async () => {
 
@@ -358,19 +385,13 @@ scale(${viewport.zoom})
 
       setLoading(true);
 
-      
 
-      // =====================================
-      // TEMPORARY SAMPLE GRAPH
-      // =====================================
 
       const response = await API.get(
-    `/dashboard/knowledge-graph/${selectedDocument}`
-);
+        `/dashboard/knowledge-graph/${selectedDocument}`
+      );
 
-const graph = response.data;
-
-
+      const graph = response.data;
 
       if (!graph.nodes || !graph.edges) {
 
@@ -381,14 +402,11 @@ const graph = response.data;
       }
 
       /* -----------------------------
-         Node Colors
+         Build Parent & Child Maps
       ------------------------------ */
 
-      // -----------------------------
-      // Build Parent & Child Maps
-      // -----------------------------
-
       const parentMap = {};
+
       const childMap = {};
 
       graph.edges.forEach((edge) => {
@@ -396,7 +414,9 @@ const graph = response.data;
         parentMap[edge.target] = edge.source;
 
         if (!childMap[edge.source]) {
+
           childMap[edge.source] = [];
+
         }
 
         childMap[edge.source].push(edge.target);
@@ -404,148 +424,152 @@ const graph = response.data;
       });
 
       setParentConnections(parentMap);
+
       setChildConnections(childMap);
 
-      // -----------------------------
-      // Dynamic Node Color
-      // -----------------------------
+      /* -----------------------------
+         Dynamic Node Colors
+      ------------------------------ */
 
       const getNodeColor = (nodeId) => {
 
         if (!parentMap[nodeId]) {
 
           return "linear-gradient(135deg,#2563eb,#3b82f6)";
+
         }
 
         if (childMap[nodeId]) {
 
           return "linear-gradient(135deg,#059669,#10b981)";
+
         }
 
         return "linear-gradient(135deg,#ea580c,#fb923c)";
+
       };
 
       /* -----------------------------
-   Convert to ReactFlow Nodes
------------------------------- */
+         Convert to ReactFlow Nodes
+      ------------------------------ */
 
-const nodeIdMap = {};
+      const nodeIdMap = {};
+ 
 
-console.log("===== GRAPH JSON =====");
-console.log(graph);
+      const incoming = {};
 
-const incoming = {};
+      graph.edges.forEach((edge) => {
 
-graph.edges.forEach(edge => {
-  incoming[edge.target] = (incoming[edge.target] || 0) + 1;
-});
+        incoming[edge.target] =
+          (incoming[edge.target] || 0) + 1;
 
-const roots = graph.nodes.filter(node => !incoming[node.id]);
+      });
 
-console.log("ROOT COUNT =", roots.length);
-console.log("ROOTS =", roots);
+      const roots = graph.nodes.filter(
+        (node) => !incoming[node.id]
+      );
 
-const flowNodes = graph.nodes.map((node, index) => {
 
-  const uniqueId = `${node.id}-${index}`;
+      const flowNodes = graph.nodes.map((node, index) => {
 
-  nodeIdMap[node.id] = uniqueId;
+        const uniqueId = `${node.id}-${index}`;
 
-  return {
+        nodeIdMap[node.id] = uniqueId;
 
-    id: uniqueId,
+        return {
 
-    type: "custom",
+          id: uniqueId,
 
-    position: {
-      x: 0,
-      y: 0,
-    },
+          type: "custom",
 
-    data: {
+          position: {
 
-      label: node.label,
+            x: 0,
 
-      color: getNodeColor(node.label),
+            y: 0,
 
-      selected: false,
+          },
 
-      highlighted:
-        searchText.trim() !== "" &&
-        node.label
-          .toLowerCase()
-          .includes(searchText.toLowerCase()),
+          data: {
 
-    },
+            label: node.label,
 
-  };
+            color: getNodeColor(node.label),
 
-});
+            selected: false,
 
+            highlighted:
+
+              searchText.trim() !== "" &&
+
+              node.label
+                .toLowerCase()
+                .includes(searchText.toLowerCase()),
+
+          },
+
+        };
+
+      });
 
       /* -----------------------------
          Convert to ReactFlow Edges
       ------------------------------ */
 
-     const addedEdges = new Set();
+      const addedEdges = new Set();
 
-const flowEdges = [];
+      const flowEdges = [];
 
-graph.edges.forEach((edge, index) => {
+      graph.edges.forEach((edge, index) => {
 
-  const source = nodeIdMap[edge.source];
-  const target = nodeIdMap[edge.target];
+        const source = nodeIdMap[edge.source];
 
-  // Skip invalid nodes
-  if (!source || !target) return;
+        const target = nodeIdMap[edge.target];
 
-  // Skip self loops
-  if (source === target) return;
+        // Skip invalid nodes
 
-  const forward = `${source}-${target}`;
-  const reverse = `${target}-${source}`;
+        if (!source || !target) return;
 
-  // Skip reverse edge to avoid cycles
-  if (addedEdges.has(reverse)) return;
+        // Skip self loop
 
-  addedEdges.add(forward);
+        if (source === target) return;
 
-  flowEdges.push({
-    id: `edge-${index}`,
-    source,
-    target,
-  });
+        const forward = `${source}-${target}`;
 
-});
+        const reverse = `${target}-${source}`;
+                // Skip reverse edge to avoid cycles
 
+        if (addedEdges.has(reverse)) return;
+
+        addedEdges.add(forward);
+
+        flowEdges.push({
+
+          id: `edge-${index}`,
+
+          source,
+
+          target,
+
+        });
+
+      });
 
       /* -----------------------------
-         Apply Dagre Layout
+         Apply Mind Map Layout
       ------------------------------ */
-      
-      console.log("========== FLOW NODES ==========");
-console.log(flowNodes);
 
-console.log("========== FLOW EDGES ==========");
-console.log(flowEdges);
+      const layoutedGraph = buildMindMap(
 
-console.log("========== GRAPH JSON ==========");
-console.log(graph);
+        flowNodes,
 
-const layoutedGraph = buildMindMap(
-  flowNodes,
-  flowEdges
-);
+        flowEdges
 
-console.log("FIRST NODE");
-console.log(layoutedGraph.nodes[0]);
-
-
-
+      );
       setNodes(layoutedGraph.nodes);
+
       setEdges(layoutedGraph.edges);
 
-      console.log(layoutedGraph.nodes);
 
       setTimeout(() => {
 
@@ -553,60 +577,56 @@ console.log(layoutedGraph.nodes[0]);
 
           reactFlowInstance.current.fitView({
 
-    padding: 0.15,
+            padding: 0.15,
 
-    duration: 800,
+            duration: 800,
 
-});
+          });
 
         }
 
       }, 200);
 
-
       setNodeCount(layoutedGraph.nodes.length);
+
       setEdgeCount(layoutedGraph.edges.length);
 
-
-
       const selectedDoc = documents.find(
+
         (doc) => doc.id == selectedDocument
+
       );
 
       if (selectedDoc) {
+
         setSelectedDocumentName(selectedDoc.fileName);
+
       }
-    }
-    catch (error) {
+
+    } catch (error) {
 
       console.error(error);
 
       toast.error("Unable to generate Knowledge Graph.");
 
-    }
-
-    finally {
+    } finally {
 
       setLoading(false);
 
     }
 
   };
-  /* =========================================================
-     AI Explanation
-  ========================================================= */
+
+
 
   const explainNode = async (event, node) => {
-
-    try {
+        try {
 
       setSelectedNode(node);
 
       setSelectedNodeId(node.id);
 
-      // ======================================
-      // Auto Center Selected Node
-      // ======================================
+
 
       if (reactFlowInstance.current) {
 
@@ -628,16 +648,14 @@ console.log(layoutedGraph.nodes[0]);
 
       }
 
-      // Highlight selected node
-      // ========================================
-      // Highlight Selected + Parent + Children
-      // ========================================
+
 
       const parent = parentConnections[node.id];
 
       const children = childConnections[node.id] || [];
 
       setNodes((prev) =>
+
         prev.map((n) => {
 
           const isSelected = n.id === node.id;
@@ -667,9 +685,10 @@ console.log(layoutedGraph.nodes[0]);
           };
 
         })
+
       );
 
-      // Check cache first
+
       if (explanationCache[node.data.label]) {
 
         setNodeExplanation(
@@ -687,32 +706,33 @@ console.log(layoutedGraph.nodes[0]);
       setNodeExplanation("");
 
       const response = await API.post(
-  "/dashboard/explain",
-  {
-    topic: node.data.label,
-  }
-);
+
+        "/dashboard/explain",
+
+        {
+
+          topic: node.data.label,
+
+        }
+
+      );
 
       setNodeExplanation(
 
         response.data.explanation
 
       );
-
-      // Save in cache
+            // Save explanation in cache
 
       setExplanationCache((prev) => ({
 
         ...prev,
 
-        [node.data.label]:
-          response.data.explanation,
+        [node.data.label]: response.data.explanation,
 
       }));
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
       console.error(error);
 
@@ -722,126 +742,140 @@ console.log(layoutedGraph.nodes[0]);
 
       );
 
-    }
-
-    finally {
+    } finally {
 
       setLoadingExplanation(false);
 
     }
 
   };
-  /* =========================================================
-     UI
-  ========================================================= */
+
+
 
   return (
 
-    <div className="flex min-h-screen bg-slate-900">
+    <AppLayout>
 
-      <Sidebar />
+      <div className="mx-auto max-w-7xl">
 
-      <div className="flex-1">
+        {/* Header */}
 
-        <Topbar />
+        <div className="rounded-3xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 p-8 shadow-2xl">
 
-        <main className="p-8">
+          <h1 className="text-5xl font-extrabold text-white">
 
-          <div className="mx-auto max-w-7xl">
+            🧠 AI Knowledge Graph
 
-            {/* Header */}
+          </h1>
 
-            <div className="rounded-3xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 p-8 shadow-2xl">
+          <p className="mt-4 text-lg text-purple-100">
 
-              <h1 className="text-5xl font-extrabold text-white">
+            Click any node to get an AI explanation powered by Gemini.
 
-                🧠 AI Knowledge Graph
+          </p>
 
-              </h1>
+        </div>
 
-              <p className="mt-4 text-lg text-purple-100">
+        {/* Search */}
 
-                Click any node to get an AI explanation powered by Gemini.
+        <div className="mt-8 rounded-3xl card-bg p-6 shadow-xl">
 
-              </p>
+          <h2 className="text-2xl font-bold text-primary">
 
-            </div>
+            🔍 Search Node
 
-            {/* Search */}
+          </h2>
 
-            <div className="mt-8 rounded-3xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
+          <input
 
-              <h2 className="text-2xl font-bold text-white">
+            type="text"
 
-                🔍 Search Node
+            placeholder="Search node..."
 
-              </h2>
+            value={searchText}
 
-              <input
+            onChange={(e) => setSearchText(e.target.value)}
 
-                type="text"
+            className="mt-4 w-full rounded-xl border border-theme search-box p-4 text-primary placeholder:text-secondary outline-none transition-all focus:border-cyan-400"
 
-                placeholder="Search node..."
+          />
 
-                value={searchText}
+        </div>
 
-                onChange={(e) => setSearchText(e.target.value)}
+        {/* Empty State */}
 
-                className="mt-4 w-full rounded-xl border border-slate-600 bg-slate-700 p-4 text-white outline-none"
+        {documents.length === 0 ? (
 
-              />
+          <div className="mt-8 rounded-3xl card-bg p-10 text-center">
 
-            </div>
+            <h2 className="text-2xl font-bold text-primary">
 
-            {/* Document Selector */}
+              No Documents Available
 
-            <div className="mt-8 rounded-3xl border border-slate-700 bg-slate-800 p-8">
+            </h2>
 
-              <h2 className="text-3xl font-bold text-white">
+            <p className="mt-3 text-secondary">
 
-                📄 Select Document
+              Upload a document first to generate a Knowledge Graph.
 
-              </h2>
+            </p>
 
-              <select
+          </div>
 
-                value={selectedDocument}
+        ) : (
 
-                onChange={(e) =>
+          <>
+                      {/* Controls */}
 
-                  setSelectedDocument(e.target.value)
+            <div className="mt-8 grid gap-6 lg:grid-cols-4">
 
-                }
+              {/* Document Selector */}
 
-                className="mt-6 w-full rounded-xl border border-slate-600 bg-slate-700 p-4 text-white"
+              <div className="rounded-3xl card-bg p-6 shadow-xl lg:col-span-2">
 
-              >
+                <label className="mb-3 block text-lg font-bold text-primary">
 
-                <option value="">
+                  📄 Select Document
 
-                  Select a document...
+                </label>
 
-                </option>
+                <select
 
-                {documents.map((doc) => (
+                  value={selectedDocument}
 
-                  <option
+                  onChange={(e) =>
 
-                    key={doc.id}
+                    setSelectedDocument(e.target.value)
 
-                    value={doc.id}
+                  }
 
-                  >
+                  className="w-full rounded-xl border border-theme search-box p-4 text-primary outline-none transition focus:border-cyan-400"
 
-                    {doc.fileName}
+                >
+
+                  <option value="">
+
+                    Choose a document
 
                   </option>
 
-                ))}
+                  {documents.map((doc) => (
 
-              </select>
+                    <option
 
-              <div className="mt-8">
+                      key={doc.id}
+
+                      value={doc.id}
+
+                    >
+
+                      {doc.fileName}
+
+                    </option>
+
+                  ))}
+
+                </select>
 
                 <button
 
@@ -849,66 +883,112 @@ console.log(layoutedGraph.nodes[0]);
 
                   disabled={loading}
 
-                  className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-4 font-bold text-white transition hover:scale-105"
+                  className="mt-6 w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-4 font-bold text-white transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
 
                 >
 
-                  {
+                  {loading
 
-                    loading
+                    ? "Generating Knowledge Graph..."
 
-                      ? "Generating..."
-
-                      : "🚀 Generate Knowledge Graph"
-
-                  }
+                    : "🚀 Generate Knowledge Graph"}
 
                 </button>
 
               </div>
 
-            </div>
+              {/* Statistics */}
 
-            {/* Graph + AI Panel */}
-            {/* Statistics */}
+              <div className="rounded-3xl card-bg p-6 shadow-xl">
 
-            <div className="mt-8 grid grid-cols-4 gap-6">
-              {/* Knowledge Graph Legend */}
+                <h3 className="mb-5 text-xl font-bold text-primary">
 
-              <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-800 p-5">
+                  📊 Statistics
 
-                <h3 className="mb-4 text-xl font-bold text-white">
-                  🌈 Knowledge Graph Legend
                 </h3>
 
-                <div className="flex flex-wrap gap-8">
+                <div className="space-y-4">
+
+                  <div className="rounded-xl bg-blue-500/10 p-4">
+
+                    <p className="text-sm text-secondary">
+
+                      Nodes
+
+                    </p>
+
+                    <p className="mt-1 text-3xl font-bold text-blue-500">
+
+                      {nodeCount}
+
+                    </p>
+
+                  </div>
+
+                  <div className="rounded-xl bg-green-500/10 p-4">
+
+                    <p className="text-sm text-secondary">
+
+                      Edges
+
+                    </p>
+
+                    <p className="mt-1 text-3xl font-bold text-green-500">
+
+                      {edgeCount}
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* Legend */}
+
+              <div className="rounded-3xl card-bg p-6 shadow-xl">
+
+                <h3 className="mb-5 text-xl font-bold text-primary">
+
+                  🌈 Legend
+
+                </h3>
+
+                <div className="space-y-4">
 
                   <div className="flex items-center gap-3">
 
-                    <div className="h-5 w-5 rounded-full bg-blue-600"></div>
+                    <div className="h-4 w-4 rounded-full bg-blue-500" />
 
-                    <span className="text-slate-300">
-                      Root Concept
+                    <span className="text-secondary">
+
+                      Root Node
+
                     </span>
 
                   </div>
 
                   <div className="flex items-center gap-3">
 
-                    <div className="h-5 w-5 rounded-full bg-green-600"></div>
+                    <div className="h-4 w-4 rounded-full bg-green-500" />
 
-                    <span className="text-slate-300">
-                      Intermediate Concept
+                    <span className="text-secondary">
+
+                      Parent Node
+
                     </span>
 
                   </div>
 
                   <div className="flex items-center gap-3">
 
-                    <div className="h-5 w-5 rounded-full bg-orange-500"></div>
+                    <div className="h-4 w-4 rounded-full bg-orange-500" />
 
-                    <span className="text-slate-300">
-                      Leaf Concept
+                    <span className="text-secondary">
+
+                      Leaf Node
+
                     </span>
 
                   </div>
@@ -917,303 +997,192 @@ console.log(layoutedGraph.nodes[0]);
 
               </div>
 
-              <div className="rounded-2xl bg-slate-800 p-6 border border-slate-700">
-
-                <p className="text-slate-400 text-sm">
-                  Document
-                </p>
-
-                <h3 className="mt-2 text-xl font-bold text-cyan-400 truncate">
-                  {selectedDocumentName || "None"}
-                </h3>
-
-              </div>
-
-              <div className="rounded-2xl bg-slate-800 p-6 border border-slate-700">
-
-                <p className="text-slate-400 text-sm">
-                  Nodes
-                </p>
-
-                <h3 className="mt-2 text-4xl font-bold text-green-400">
-                  {nodeCount}
-                </h3>
-
-              </div>
-
-              <div className="rounded-2xl bg-slate-800 p-6 border border-slate-700">
-
-                <p className="text-slate-400 text-sm">
-                  Connections
-                </p>
-
-                <h3 className="mt-2 text-4xl font-bold text-orange-400">
-                  {edgeCount}
-                </h3>
-
-              </div>
-
-              <div className="rounded-2xl bg-slate-800 p-6 border border-slate-700">
-
-                <p className="text-slate-400 text-sm">
-                  AI Status
-                </p>
-
-                <h3 className="mt-2 text-xl font-bold text-purple-400">
-                  Ready
-                </h3>
-
-              </div>
-
             </div>
+                        {/* Graph */}
 
-            <div className="mt-8 grid grid-cols-12 gap-6">
-              {/* ===============================
-                Knowledge Graph
-            ================================ */}
+            <div className="mt-8 rounded-3xl card-bg p-6 shadow-xl">
 
-              <div className="col-span-8 rounded-3xl border border-slate-700 bg-slate-800 p-6">
+              <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-                <div className="mb-6 flex items-center justify-between">
+                <div>
 
-                  <h2 className="text-3xl font-bold text-white">
+                  <h2 className="text-2xl font-bold text-primary">
+
                     🌐 Knowledge Graph
+
                   </h2>
 
-                  <div className="flex gap-3">
+                  {selectedDocumentName && (
 
-                    <button
-                      onClick={() => {
+                    <p className="mt-1 text-secondary">
 
-                        if (reactFlowInstance.current) {
+                      {selectedDocumentName}
 
-                          reactFlowInstance.current.fitView({
+                    </p>
 
-                            padding: 0.35,
-                            duration: 700,
-
-                          });
-
-                        }
-
-                      }}
-                      className="rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
-                    >
-                      🔄 Reset View
-                    </button>
-
-                    <button
-                      onClick={exportGraph}
-                      className="rounded-xl bg-green-600 px-5 py-3 font-semibold text-white transition hover:bg-green-700"
-                    >
-                      📤 Export PNG
-                    </button>
-
-                  </div>
+                  )}
 
                 </div>
 
-                <div
-                  ref={graphRef}
-                  className="relative h-[1100px] rounded-2xl border border-slate-700 bg-slate-950"
-                >
+                <div className="flex flex-wrap gap-3">
 
-                  {loading && (
-                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-2xl bg-slate-900/80 backdrop-blur-sm">
+                  <button
 
-                      <div className="mb-4 h-14 w-14 animate-spin rounded-full border-4 border-cyan-500 border-t-transparent"></div>
+                    onClick={resetView}
 
-                      <h2 className="text-2xl font-bold text-white">
-                        🧠 Building Knowledge Graph...
-                      </h2>
+                    className="rounded-xl border border-theme px-5 py-3 font-semibold text-primary transition hover:bg-cyan-500 hover:text-white"
 
-                      <p className="mt-2 text-slate-300">
-                        Please wait while AI prepares the graph.
-                      </p>
-
-                    </div>
-                  )}
-
-
-                  {!loading && nodes.length === 0 ? (
-
-  <div className="flex h-full flex-col items-center justify-center text-center">
-
-    <div className="text-8xl">
-      🧠
-    </div>
-
-    <h2 className="mt-8 text-4xl font-bold text-white">
-      No Knowledge Graph Yet
-    </h2>
-
-    <p className="mt-4 max-w-xl text-lg text-slate-400">
-      Select a document and click
-      <span className="font-semibold text-cyan-400">
-        {" "}Generate Knowledge Graph
-      </span>
-      to visualize concepts and relationships.
-    </p>
-
-  </div>
-
-) : (
-
-                  <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    nodeTypes={nodeTypes}
-                    fitView
-                    fitViewOptions={fitViewOptions}
-                    defaultEdgeOptions={defaultEdgeOptions}
-                    onNodeClick={explainNode}
-
-                    onInit={(instance) => {
-                      reactFlowInstance.current = instance;
-                    }}
-
-                    panOnDrag={true}
-                    panOnScroll={true}
-                    zoomOnScroll={true}
-                    selectionOnDrag={false}
-
-                    style={{
-                      cursor: "grab",
-                    }}
                   >
 
-                    <MiniMap
-                      pannable
-                      zoomable
-                      nodeStrokeWidth={3}
-                      nodeBorderRadius={8}
+                    Reset View
 
-                      position="bottom-right"
+                  </button>
 
-                      style={{
-                        background: "#0f172a",
-                        border: "1px solid #334155",
-                        borderRadius: "12px",
-                      }}
+                  <button
 
-                      maskColor="rgba(15,23,42,0.6)"
-                    />
+                    onClick={exportGraph}
 
-                    <Controls
-                      position="top-right"
-                      showInteractive={false}
-                    />
+                    className="rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 px-5 py-3 font-semibold text-white transition hover:scale-[1.02]"
 
-                    <Background
-                      gap={22}
-                      size={1.2}
-                      color="#1e293b"
-                    />
+                  >
 
-                  </ReactFlow>
-)}
+                    Export PNG
+
+                  </button>
+
                 </div>
 
               </div>
-              {/* ===============================
-                AI Explanation Panel
-            ================================ */}
 
-              <div className="col-span-4 rounded-3xl border border-slate-700 bg-slate-800 p-6">
+              <div
 
-                <h2 className="text-3xl font-bold text-white">
-                  🤖 AI Explanation
-                </h2>
+                ref={graphRef}
 
-                {!selectedNode ? (
+                className="h-[700px] overflow-hidden rounded-2xl border border-theme"
 
-                  <div className="mt-12 text-center">
+              >
 
-                    <div className="text-6xl">
-                      🧠
-                    </div>
+                <ReactFlow
 
-                    <p className="mt-6 text-slate-400">
-                      Click any node to generate an AI explanation.
-                    </p>
+                  nodes={nodes}
 
-                  </div>
+                  edges={edges}
 
-                ) : loadingExplanation ? (
+                  onNodeClick={explainNode}
 
-                  <div className="mt-12 text-center">
+                  nodeTypes={nodeTypes}
 
-                    <div
-                      className="
-                      mx-auto
-                      h-12
-                      w-12
-                      animate-spin
-                      rounded-full
-                      border-4
-                      border-cyan-500
-                      border-t-transparent
-                    "
-                    />
+                  fitView
 
-                    <p className="mt-6 text-cyan-400">
-                      Gemini is thinking...
-                    </p>
+                  fitViewOptions={fitViewOptions}
 
-                  </div>
+                  defaultEdgeOptions={defaultEdgeOptions}
 
-                ) : (
+                  minZoom={0.2}
 
-                  <>
+                  maxZoom={2}
 
-                    <h3 className="mt-6 text-2xl font-bold text-cyan-400">
+                  attributionPosition="bottom-left"
+
+                  onInit={(instance) => {
+
+                    reactFlowInstance.current = instance;
+
+                  }}
+
+                >
+
+                  <Background
+
+                    gap={18}
+
+                    size={1.2}
+
+                  />
+
+                  <Controls />
+
+                  <MiniMap
+
+                    pannable
+
+                    zoomable
+
+                  />
+
+                </ReactFlow>
+
+              </div>
+
+            </div>
+                        {/* AI Explanation */}
+
+            <div className="mt-8 rounded-3xl card-bg p-6 shadow-xl">
+
+              <h2 className="mb-6 text-2xl font-bold text-primary">
+
+                🤖 AI Explanation
+
+              </h2>
+
+              {!selectedNode ? (
+
+                <div className="rounded-2xl border border-dashed border-theme p-10 text-center">
+
+                  <p className="text-secondary">
+
+                    Click a node in the Knowledge Graph to view its AI-generated explanation.
+
+                  </p>
+
+                </div>
+
+              ) : (
+
+                <>
+
+                  <div className="mb-6 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 p-5">
+
+                    <h3 className="text-xl font-bold text-white">
 
                       {selectedNode.data.label}
 
                     </h3>
 
-                    <div
-                      className="
-                      mt-6
-                      max-h-[520px]
-                      overflow-y-auto
-                      rounded-xl
-                      bg-slate-900
-                      p-5
-                    "
-                    >
+                  </div>
 
-                      <pre
-                        className="
-                        whitespace-pre-wrap
-                        font-sans
-                        text-sm
-                        leading-7
-                        text-slate-200
-                      "
-                      >
+                  {loadingExplanation ? (
 
-                        {nodeExplanation}
+                    <div className="flex items-center justify-center py-16">
 
-                      </pre>
+                      <div className="h-12 w-12 animate-spin rounded-full border-4 border-cyan-500 border-t-transparent" />
 
                     </div>
 
-                  </>
+                  ) : (
 
-                )}
+                    <div className="rounded-2xl border border-theme p-6">
 
-              </div>
+                      <pre className="whitespace-pre-wrap leading-8 text-primary font-sans">
+  {nodeExplanation}
+</pre>
+                    </div>
+
+                  )}
+
+                </>
+
+              )}
 
             </div>
 
-          </div>
+          </>
 
-        </main>
+        )}
 
       </div>
 
-    </div>
+    </AppLayout>
 
   );
 

@@ -56,22 +56,31 @@ function UploadBox() {
     }
 
     try {
+
+      const token = localStorage.getItem("token");
+
+if (!token) {
+  toast.error("Please login first.");
+  return;
+}
+
       setUploadProgress(0);
 
       let uploaded = 0;
 
       for (const file of selectedFiles) {
-        console.log(file);
-console.log(file.name);
-console.log(file.size);
+
         const formData = new FormData();
         formData.append("file", file);
 
-        await API.post("/dashboard/upload", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const token = localStorage.getItem("token");
+
+await API.post("/dashboard/upload", formData, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "multipart/form-data",
+  },
+});
 
         uploaded++;
 
@@ -96,11 +105,11 @@ console.log(file.size);
 
       {/* Page Heading */}
 
-      <h1 className="text-4xl font-bold text-white">
+      <h1 className="text-4xl font-bold text-primary">
         Upload Industrial Documents
       </h1>
 
-      <p className="mt-3 text-lg text-slate-400">
+      <p className="mt-3 text-lg text-secondary">
         Upload maintenance manuals, SOPs, inspection reports and engineering
         documents for AI-powered analysis.
       </p>
@@ -113,8 +122,8 @@ console.log(file.size);
         onDrop={handleDrop}
         className={`mt-10 rounded-3xl border-2 border-dashed px-12 py-16 shadow-xl transition-all duration-300 ${
           isDragging
-            ? "border-cyan-300 bg-slate-700 scale-[1.02]"
-            : "border-cyan-500 bg-slate-800 hover:border-cyan-400 hover:shadow-cyan-500/20"
+  ? "border-cyan-300 card-bg scale-[1.02]"
+  : "border-cyan-500 card-bg hover:border-cyan-400 hover:shadow-cyan-500/20"
         }`}
       >
 
@@ -127,11 +136,11 @@ console.log(file.size);
             }`}
           />
 
-          <h2 className="text-5xl font-bold text-white">
+          <h2 className="text-5xl font-bold text-primary">
             {isDragging ? "Drop Files Here" : "Drag & Drop Files Here"}
           </h2>
 
-          <p className="mt-3 text-2xl text-slate-400">
+          <p className="mt-3 text-2xl text-secondary">
             OR
           </p>
 
@@ -151,14 +160,14 @@ console.log(file.size);
             Choose Files
           </label>
 
-          <p className="mt-6 text-lg text-slate-400">
+          <p className="mt-6 text-lg text-secondary">
             Supported Files:
             <span className="font-semibold text-cyan-400">
               {" "}PDF • DOCX • PNG • JPG
             </span>
           </p>
 
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-secondary">
             Maximum file size: 20 MB
           </p>
 
@@ -172,7 +181,7 @@ console.log(file.size);
 
         <div className="mt-8 rounded-2xl bg-slate-800 p-6 shadow-lg">
 
-          <h2 className="mb-5 text-3xl font-bold text-white">
+          <h2 className="mb-5 text-3xl font-bold text-primary">
             Selected Files
           </h2>
 
@@ -201,11 +210,11 @@ console.log(file.size);
 
                   <div>
 
-                    <p className="font-semibold text-white">
+                    <p className="font-semibold text-primary">
                       {file.name}
                     </p>
 
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-secondary">
                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
 
@@ -215,7 +224,7 @@ console.log(file.size);
 
                 <button
                   onClick={() => removeFile(index)}
-                  className="rounded-full p-2 text-red-400 transition hover:bg-red-500 hover:text-white"
+                  className="rounded-full p-2 text-red-400 transition hover:bg-red-500 hover:text-primary"
                 >
                   <X size={22} />
                 </button>

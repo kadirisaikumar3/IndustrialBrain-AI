@@ -1,14 +1,15 @@
 package com.industrialbrain.backend.controller;
 
 import com.industrialbrain.backend.dto.DashboardStats;
+import com.industrialbrain.backend.dto.RecentActivityDTO;
+import com.industrialbrain.backend.dto.UploadTrendDTO;
+import com.industrialbrain.backend.entity.User;
 import com.industrialbrain.backend.service.DashboardService;
+
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import com.industrialbrain.backend.dto.UploadTrendDTO;
 import java.util.List;
-
-import com.industrialbrain.backend.dto.RecentActivityDTO;
-
 
 @RestController
 @RequestMapping("/api/dashboard")
@@ -21,20 +22,26 @@ public class DashboardController {
     }
 
     @GetMapping("/stats")
-    public DashboardStats getStats() {
-        return dashboardService.getStats();
+    public DashboardStats getStats(Authentication authentication) {
+
+        User user = (User) authentication.getPrincipal();
+
+        return dashboardService.getStats(user);
     }
 
     @GetMapping("/trend")
-public List<UploadTrendDTO> getUploadTrend() {
+    public List<UploadTrendDTO> getUploadTrend(Authentication authentication) {
 
-    return dashboardService.getUploadTrend();
+        User user = (User) authentication.getPrincipal();
 
-}
-@GetMapping("/activity")
-public List<RecentActivityDTO> getRecentActivity() {
+        return dashboardService.getUploadTrend(user);
+    }
 
-    return dashboardService.getRecentActivity();
+    @GetMapping("/activity")
+    public List<RecentActivityDTO> getRecentActivity(Authentication authentication) {
 
-}
+        User user = (User) authentication.getPrincipal();
+
+        return dashboardService.getRecentActivity(user);
+    }
 }

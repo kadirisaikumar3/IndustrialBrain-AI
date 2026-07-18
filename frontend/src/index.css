@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+:root {
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --surface-hover: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --border: #e2e8f0;
+}
+
+.dark {
+  --background: #0f172a;
+  --surface: #1e293b;
+  --surface-hover: #334155;
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+  --border: #475569;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -12,12 +30,11 @@ body,
   width: 100%;
   min-height: 100vh;
   font-family: Inter, Arial, sans-serif;
-  background-color: #0f172a;
+  background: var(--background);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-body {
-  color: white;
-}
 .react-flow {
   cursor: grab;
 }
@@ -32,4 +49,116 @@ body {
 
 .react-flow__pane.dragging {
   cursor: grabbing;
+}
+
+
+
+.page-bg {
+  background: var(--background);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.card-bg {
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  background: var(--surface-hover);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.border-theme {
+  border-color: var(--border);
+}
+
+
+
+.sidebar-bg {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.sidebar-header {
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-title {
+  color: var(--text-primary);
+}
+
+.sidebar-subtitle {
+  color: var(--text-secondary);
+}
+
+.sidebar-link {
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+}
+
+.sidebar-link:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.sidebar-link-active {
+  background: #06b6d4;
+  color: white;
+  font-weight: 600;
+}
+
+
+
+.topbar-bg {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.search-box {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.search-input {
+  color: var(--text-primary);
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.icon-button {
+  background: var(--surface-hover);
+  transition: all 0.3s ease;
+}
+
+.icon-button:hover {
+  filter: brightness(1.08);
+}
+
+.icon-primary {
+  color: var(--text-primary);
+}
+
+.drop-zone {
+  background: var(--surface);
+  border-color: var(--border);
+  transition: all 0.3s ease;
+}
+
+.drop-zone:hover {
+  background: var(--surface-hover);
 }

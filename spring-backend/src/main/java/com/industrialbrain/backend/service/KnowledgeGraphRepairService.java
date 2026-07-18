@@ -64,9 +64,6 @@ System.out.println(json.substring(0, Math.min(json.length(), 500)));
 
             List<String> roots = new ArrayList<>();
 
-            System.out.println("ROOT COUNT BEFORE REPAIR = " + roots.size());
-System.out.println(roots);
-
             for (String id : nodeIds) {
 
                 if (!childNodes.contains(id)) {

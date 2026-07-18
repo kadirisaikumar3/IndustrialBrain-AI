@@ -12,43 +12,45 @@ function Home() {
   const navigate = useNavigate();
 
   return (
-    <main className="min-h-screen bg-slate-900 text-white">
+    <main className="min-h-screen bg-theme transition-colors duration-300">
 
       {/* Hero Section */}
 
-      <section className="max-w-7xl mx-auto px-8 py-20">
+      <section className="mx-auto max-w-7xl px-8 py-20">
 
-        <div className="max-w-3xl">
+        <div className="rounded-3xl bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 p-12 shadow-2xl">
 
-          <h1 className="text-6xl font-bold leading-tight">
-            Transform
-            <span className="text-cyan-400">
-              {" "}Industrial Documents{" "}
-            </span>
-            Into AI-Powered Intelligence
-          </h1>
+          <div className="max-w-3xl">
 
-          <p className="mt-8 text-xl text-slate-300 leading-8">
-            Upload maintenance manuals, SOPs, inspection reports and
-            engineering documents. Ask questions in natural language
-            and receive intelligent answers powered by Generative AI.
-          </p>
+            <h1 className="text-6xl font-bold leading-tight text-primary">
+              Transform
+              <span className="text-cyan-200">
+                {" "}Industrial Documents{" "}
+              </span>
+              Into AI-Powered Intelligence
+            </h1>
 
-          <div className="mt-10 flex gap-4">
+            <p className="mt-8 text-xl leading-8 text-cyan-100">
+              Upload maintenance manuals, SOPs, inspection reports and engineering documents. Ask questions in natural language and receive intelligent answers powered by Generative AI.
+            </p>
 
-            <button
-              onClick={() => navigate("/upload")}
-              className="flex items-center gap-2 rounded-xl bg-cyan-500 px-6 py-3 font-semibold text-slate-900 transition hover:bg-cyan-400"
-            >
-              Get Started
-              <ArrowRight size={20} />
-            </button>
+            <div className="mt-10 flex flex-wrap gap-4">
 
-            <button
-              className="rounded-xl border border-slate-700 px-6 py-3 transition hover:border-cyan-400"
-            >
-              Learn More
-            </button>
+              <button
+                onClick={() => navigate("/upload")}
+                className="flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-cyan-700 transition-all duration-300 hover:scale-[1.03]"
+              >
+                Get Started
+                <ArrowRight size={20} />
+              </button>
+
+              <button
+                className="rounded-xl border border-white/40 px-6 py-3 font-semibold text-primary transition-all duration-300 hover:bg-white/10"
+              >
+                Learn More
+              </button>
+
+            </div>
 
           </div>
 
@@ -58,67 +60,67 @@ function Home() {
 
       {/* Features */}
 
-      <section className="max-w-7xl mx-auto px-8 pb-20">
+      <section className="mx-auto max-w-7xl px-8 pb-20">
 
-        <div className="grid gap-6 md:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
 
-          <div className="rounded-xl bg-slate-800 p-6">
+          <div className="card-bg rounded-3xl border border-theme p-8 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
             <BrainCircuit
-              className="mb-4 text-cyan-400"
-              size={34}
+              className="mb-5 text-cyan-500"
+              size={36}
             />
 
-            <h2 className="mb-2 text-xl font-semibold">
+            <h2 className="mb-3 text-2xl font-bold text-primary">
               AI Chat
             </h2>
 
-            <p className="text-slate-400">
-              Ask industrial questions naturally.
+            <p className="text-secondary">
+              Ask industrial questions naturally and receive AI-powered responses instantly.
             </p>
           </div>
 
-          <div className="rounded-xl bg-slate-800 p-6">
+          <div className="card-bg rounded-3xl border border-theme p-8 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
             <FileText
-              className="mb-4 text-cyan-400"
-              size={34}
+              className="mb-5 text-cyan-500"
+              size={36}
             />
 
-            <h2 className="mb-2 text-xl font-semibold">
+            <h2 className="mb-3 text-2xl font-bold text-primary">
               PDF Intelligence
             </h2>
 
-            <p className="text-slate-400">
-              Upload manuals and reports.
+            <p className="text-secondary">
+              Upload manuals, inspection reports and technical documents for intelligent processing.
             </p>
           </div>
 
-          <div className="rounded-xl bg-slate-800 p-6">
+          <div className="card-bg rounded-3xl border border-theme p-8 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
             <Search
-              className="mb-4 text-cyan-400"
-              size={34}
+              className="mb-5 text-cyan-500"
+              size={36}
             />
 
-            <h2 className="mb-2 text-xl font-semibold">
+            <h2 className="mb-3 text-2xl font-bold text-primary">
               Semantic Search
             </h2>
 
-            <p className="text-slate-400">
-              Search beyond keywords.
+            <p className="text-secondary">
+              Search documents using natural language instead of exact keywords.
             </p>
           </div>
 
-          <div className="rounded-xl bg-slate-800 p-6">
+          <div className="card-bg rounded-3xl border border-theme p-8 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
             <Network
-              className="mb-4 text-cyan-400"
-              size={34}
+              className="mb-5 text-cyan-500"
+              size={36}
             />
 
-            <h2 className="mb-2 text-xl font-semibold">
+            <h2 className="mb-3 text-2xl font-bold text-primary">
               Knowledge Graph
             </h2>
 
-            <p className="text-slate-400">
-              Visualize connected industrial knowledge.
+            <p className="text-secondary">
+              Visualize relationships and explore connected industrial knowledge interactively.
             </p>
           </div>
 

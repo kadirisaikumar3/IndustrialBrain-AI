@@ -1,6 +1,7 @@
 package com.industrialbrain.backend.service;
 
 import com.industrialbrain.backend.entity.Document;
+import com.industrialbrain.backend.entity.User;
 import com.industrialbrain.backend.repository.DocumentRepository;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -26,54 +27,60 @@ public class DocumentService {
         return documentRepository.save(document);
     }
 
-    // Get all documents
+    // Existing method (keep for now)
     public List<Document> getAllDocuments() {
         return documentRepository.findAll();
     }
 
-    // Get document by ID
+    // NEW: Get documents of a specific user
+    public List<Document> getDocumentsByUser(User user) {
+        return documentRepository.findByUser(user);
+    }
+
+    // Existing method (keep for now)
     public Optional<Document> getDocumentById(Long id) {
         return documentRepository.findById(id);
     }
 
+    // NEW: Get a document belonging to a specific user
+    public Optional<Document> getDocumentByIdAndUser(Long id, User user) {
+    return documentRepository.findByIdAndUser(id, user);
+}
+
     // Load file as Resource
     public Resource loadFileAsResource(Path path) {
 
-    try {
+        try {
 
-        // If the saved path doesn't exist (e.g. /app/uploads/...),
-        // try loading from the local uploads folder using the filename.
+            File file = path.toFile();
 
-        File file = path.toFile();
+            if (!file.exists()) {
 
-        if (!file.exists()) {
+                file = new File(
+                        System.getProperty("user.dir")
+                                + File.separator
+                                + "uploads",
+                        file.getName()
+                );
 
-            file = new File(
-                    System.getProperty("user.dir")
-                            + File.separator
-                            + "uploads",
-                    file.getName()
-            );
+            }
+
+            Resource resource = new UrlResource(file.toURI());
+
+            if (resource.exists()) {
+                return resource;
+            }
+
+            throw new RuntimeException("File not found: " + file.getAbsolutePath());
+
+        } catch (MalformedURLException e) {
+
+            throw new RuntimeException("File not found.", e);
 
         }
-
-        Resource resource = new UrlResource(file.toURI());
-
-        if (resource.exists()) {
-            return resource;
-        }
-
-        throw new RuntimeException("File not found: " + file.getAbsolutePath());
-
-    } catch (MalformedURLException e) {
-
-        throw new RuntimeException("File not found.", e);
-
     }
 
-}
-
-    // Delete document from uploads folder and database
+    // Delete document
     public boolean deleteDocument(Long id) {
 
         Optional<Document> optionalDocument = documentRepository.findById(id);

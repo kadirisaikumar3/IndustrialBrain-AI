@@ -24,6 +24,14 @@ import java.util.Optional;
 import com.industrialbrain.backend.dto.KnowledgeGraphResponse;
 import com.industrialbrain.backend.service.KnowledgeGraphService;
 
+import com.industrialbrain.backend.entity.User;
+import org.springframework.security.core.Authentication;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.industrialbrain.backend.entity.User;
+
+
 @RestController
 @RequestMapping("/api/dashboard")
 public class DocumentController {
@@ -51,31 +59,36 @@ public class DocumentController {
     this.knowledgeGraphService = knowledgeGraphService;
 }
 
-    // ======================================
-    // Get All Documents
-    // ======================================
 
     @GetMapping("/documents")
-    public List<Document> getAllDocuments() {
-        return documentService.getAllDocuments();
-    }
+public List<Document> getAllDocuments(Authentication authentication) {
 
-    // ======================================
-    // Download
-    // ======================================
+    User user = (User) authentication.getPrincipal();
+
+    return documentService.getDocumentsByUser(user);
+}
+
 
     @GetMapping("/download/{id}")
     public ResponseEntity<?> downloadDocument(
             @PathVariable Long id) throws Exception {
 
-        Optional<Document> optionalDocument =
-                documentService.getDocumentById(id);
+        Authentication authentication =
+        org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication();
 
-        if (optionalDocument.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+User user = (User) authentication.getPrincipal();
 
-        Document document = optionalDocument.get();
+Optional<Document> optionalDocument =
+        documentService.getDocumentByIdAndUser(id, user);
+
+if (optionalDocument.isEmpty()) {
+    return ResponseEntity.status(404)
+            .body("Document not found.");
+}
+
+Document document = optionalDocument.get();
 
         if (document.getFilePath().startsWith("http")) {
 
@@ -119,20 +132,24 @@ return ResponseEntity.ok()
                 .body(resource);
     }
 
-    // ======================================
-    // Preview
-    // ======================================
+
 
     @GetMapping("/preview/{id}")
 public ResponseEntity<?> previewDocument(@PathVariable Long id) throws Exception {
 
-    Optional<Document> optionalDocument = documentService.getDocumentById(id);
+    Authentication authentication =
+        SecurityContextHolder.getContext().getAuthentication();
 
-    if (optionalDocument.isEmpty()) {
-        return ResponseEntity.notFound().build();
-    }
+User user = (User) authentication.getPrincipal();
 
-    Document document = optionalDocument.get();
+Optional<Document> optionalDocument =
+        documentService.getDocumentByIdAndUser(id, user);
+
+if (optionalDocument.isEmpty()) {
+    return ResponseEntity.status(404).build();
+}
+
+Document document = optionalDocument.get();
 
     if (document.getFilePath().startsWith("http")) {
 
@@ -170,9 +187,7 @@ public ResponseEntity<?> previewDocument(@PathVariable Long id) throws Exception
             .body(resource);
 }
 
-    // ======================================
-    // Delete
-    // ======================================
+
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteDocument(
@@ -192,44 +207,51 @@ public ResponseEntity<?> previewDocument(@PathVariable Long id) throws Exception
         );
     }
 
-    // ======================================
-    // Extract Text
-    // ======================================
 
-    @GetMapping("/extract/{id}")
-    public ResponseEntity<String> extractText(
-            @PathVariable Long id) {
 
-        Optional<Document> optionalDocument =
-                documentService.getDocumentById(id);
+@GetMapping("/extract/{id}")
+public ResponseEntity<String> extractText(
+        @PathVariable Long id) {
 
-        if (optionalDocument.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    Authentication authentication =
+            SecurityContextHolder.getContext().getAuthentication();
 
-        Document document = optionalDocument.get();
+    User user = (User) authentication.getPrincipal();
 
-        String text =
-                pdfService.extractText(document.getFilePath());
+    Optional<Document> optionalDocument =
+            documentService.getDocumentByIdAndUser(id, user);
 
-        return ResponseEntity.ok(text);
+    if (optionalDocument.isEmpty()) {
+        return ResponseEntity.notFound().build();
     }
-        // ======================================
-    // Summarize Document
-    // ======================================
+
+    Document document = optionalDocument.get();
+
+    String text =
+            pdfService.extractText(document.getFilePath());
+
+    return ResponseEntity.ok(text);
+}
+
+
 
     @GetMapping("/summarize/{id}")
     public ResponseEntity<String> summarizeDocument(
             @PathVariable Long id) {
 
-        Optional<Document> optionalDocument =
-                documentService.getDocumentById(id);
+        Authentication authentication =
+        SecurityContextHolder.getContext().getAuthentication();
 
-        if (optionalDocument.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+User user = (User) authentication.getPrincipal();
 
-        Document document = optionalDocument.get();
+Optional<Document> optionalDocument =
+        documentService.getDocumentByIdAndUser(id, user);
+
+if (optionalDocument.isEmpty()) {
+    return ResponseEntity.status(404).build();
+}
+
+Document document = optionalDocument.get();
 
         String extractedText =
                 pdfService.extractText(document.getFilePath());
@@ -289,23 +311,26 @@ DOCUMENT:
         return ResponseEntity.ok(summary);
     }
 
-    // ======================================
-    // Ask AI
-    // ======================================
+
 
     @PostMapping("/ask/{id}")
     public ResponseEntity<String> askDocument(
             @PathVariable Long id,
             @RequestBody String question) {
 
-        Optional<Document> optionalDocument =
-                documentService.getDocumentById(id);
+        Authentication authentication =
+        SecurityContextHolder.getContext().getAuthentication();
 
-        if (optionalDocument.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+User user = (User) authentication.getPrincipal();
 
-        Document document = optionalDocument.get();
+Optional<Document> optionalDocument =
+        documentService.getDocumentByIdAndUser(id, user);
+
+if (optionalDocument.isEmpty()) {
+    return ResponseEntity.status(404).build();
+}
+
+Document document = optionalDocument.get();
 
         String extractedText =
                 pdfService.extractText(document.getFilePath());
@@ -370,16 +395,19 @@ QUESTION:
         return ResponseEntity.ok(answer);
     }
 
-    // ======================================
-// Knowledge Graph
-// ======================================
+
 
 @GetMapping("/knowledge-graph/{id}")
 public ResponseEntity<KnowledgeGraphResponse> getKnowledgeGraph(
         @PathVariable Long id) {
 
+    Authentication authentication =
+            SecurityContextHolder.getContext().getAuthentication();
+
+    User user = (User) authentication.getPrincipal();
+
     Optional<Document> optionalDocument =
-            documentService.getDocumentById(id);
+            documentService.getDocumentByIdAndUser(id, user);
 
     if (optionalDocument.isEmpty()) {
         return ResponseEntity.notFound().build();

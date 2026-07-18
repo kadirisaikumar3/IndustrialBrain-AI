@@ -1,6 +1,8 @@
 package com.industrialbrain.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,10 +28,20 @@ public class Document {
     @Column(nullable = false)
     private LocalDateTime uploadTime;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "user_id")
+@JsonIgnore
+private User user;
+
     public Document() {
     }
 
-    public Document(String fileName, String filePath, String fileType, Long fileSize, LocalDateTime uploadTime) {
+    public Document(String fileName,
+                    String filePath,
+                    String fileType,
+                    Long fileSize,
+                    LocalDateTime uploadTime) {
+
         this.fileName = fileName;
         this.filePath = filePath;
         this.fileType = fileType;
@@ -79,5 +91,13 @@ public class Document {
 
     public void setUploadTime(LocalDateTime uploadTime) {
         this.uploadTime = uploadTime;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

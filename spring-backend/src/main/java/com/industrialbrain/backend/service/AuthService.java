@@ -51,22 +51,23 @@ public class AuthService {
                 .orElse(null);
 
         if (user == null) {
-            return new LoginResponse("", "User not found.");
+            return new LoginResponse("", "User not found.", "", "");
         }
 
         if (!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword())) {
 
-            return new LoginResponse("", "Invalid password.");
+            return new LoginResponse("", "Invalid password.", "", "");
         }
 
-        String token =
-                jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user.getEmail());
 
         return new LoginResponse(
                 token,
-                "Login successful."
+                "Login successful.",
+                user.getName(),
+                user.getEmail()
         );
     }
 }

@@ -1,30 +1,20 @@
-import Sidebar from "../../components/layout/Sidebar";
-import Topbar from "../../components/layout/Topbar";
+import AppLayout from "../../components/layout/AppLayout";
 import UploadBox from "../../components/upload/UploadBox";
-
 import DocumentList from "../../components/document/DocumentList";
 
 function Upload() {
   return (
-    <div className="flex min-h-screen bg-slate-900">
-      <Sidebar />
+    <AppLayout>
+      <div className="mx-auto max-w-6xl">
 
-      <div className="flex-1">
-        <Topbar />
+        <UploadBox />
 
-        <main className="p-8">
-          <div className="mx-auto max-w-6xl">
+        <div className="mt-10">
+          <DocumentList />
+        </div>
 
-            <UploadBox />
-
-            <div className="mt-10">
-              <DocumentList />
-            </div>
-
-          </div>
-        </main>
       </div>
-    </div>
+    </AppLayout>
   );
 }
 

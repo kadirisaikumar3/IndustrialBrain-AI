@@ -28,9 +28,7 @@ public class PDFService {
 
         try {
 
-            // =====================================
-            // IMAGE OCR
-            // =====================================
+
 
             String lowerPath = filePath.toLowerCase();
 
@@ -78,9 +76,7 @@ public class PDFService {
 
             PDDocument document;
 
-            // =====================================
-            // Read PDF from Cloudinary
-            // =====================================
+
 
             if (filePath.startsWith("http")) {
 
@@ -100,9 +96,7 @@ public class PDFService {
 
             }
 
-            // =====================================
-            // Read Local PDF
-            // =====================================
+
 
             else {
 
@@ -117,9 +111,7 @@ public class PDFService {
                 document = Loader.loadPDF(file);
             }
 
-            // =====================================
-            // Extract selectable text
-            // =====================================
+
 
             PDFTextStripper stripper = new PDFTextStripper();
 
@@ -137,9 +129,7 @@ public class PDFService {
                 return text;
             }
 
-            // =====================================
-            // OCR Fallback for scanned PDFs
-            // =====================================
+
 
             System.out.println("================================");
             System.out.println("No selectable text found.");

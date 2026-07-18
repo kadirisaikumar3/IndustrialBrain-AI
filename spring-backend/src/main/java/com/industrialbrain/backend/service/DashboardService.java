@@ -1,14 +1,13 @@
 package com.industrialbrain.backend.service;
 
 import com.industrialbrain.backend.dto.DashboardStats;
-import com.industrialbrain.backend.entity.Document;
-import com.industrialbrain.backend.repository.DocumentRepository;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-
-import com.industrialbrain.backend.dto.UploadTrendDTO;
 import com.industrialbrain.backend.dto.RecentActivityDTO;
+import com.industrialbrain.backend.dto.UploadTrendDTO;
+import com.industrialbrain.backend.entity.Document;
+import com.industrialbrain.backend.entity.User;
+import com.industrialbrain.backend.repository.DocumentRepository;
+
+import org.springframework.stereotype.Service;
 
 import java.time.format.TextStyle;
 import java.util.*;
@@ -22,9 +21,11 @@ public class DashboardService {
         this.documentRepository = documentRepository;
     }
 
-    public DashboardStats getStats() {
 
-        List<Document> documents = documentRepository.findAll();
+
+    public DashboardStats getStats(User user) {
+
+        List<Document> documents = documentRepository.findByUser(user);
 
         long totalDocuments = documents.size();
 
@@ -56,74 +57,63 @@ public class DashboardService {
         );
     }
 
-    public List<UploadTrendDTO> getUploadTrend() {
 
-    Map<String, Long> uploads = new LinkedHashMap<>();
+    public List<UploadTrendDTO> getUploadTrend(User user) {
 
-    uploads.put("Mon", 0L);
-    uploads.put("Tue", 0L);
-    uploads.put("Wed", 0L);
-    uploads.put("Thu", 0L);
-    uploads.put("Fri", 0L);
-    uploads.put("Sat", 0L);
-    uploads.put("Sun", 0L);
+        Map<String, Long> uploads = new LinkedHashMap<>();
 
-    List<Document> documents = documentRepository.findAll();
+        uploads.put("Mon", 0L);
+        uploads.put("Tue", 0L);
+        uploads.put("Wed", 0L);
+        uploads.put("Thu", 0L);
+        uploads.put("Fri", 0L);
+        uploads.put("Sat", 0L);
+        uploads.put("Sun", 0L);
 
-    for (Document document : documents) {
+        List<Document> documents = documentRepository.findByUser(user);
 
-        if (document.getUploadTime() != null) {
+        for (Document document : documents) {
 
-            String day = document.getUploadTime()
-                    .getDayOfWeek()
-                    .getDisplayName(
-                            TextStyle.SHORT,
-                            Locale.ENGLISH
-                    );
+            if (document.getUploadTime() != null) {
 
-            uploads.put(day, uploads.get(day) + 1);
+                String day = document.getUploadTime()
+                        .getDayOfWeek()
+                        .getDisplayName(
+                                TextStyle.SHORT,
+                                Locale.ENGLISH
+                        );
+
+                uploads.put(day, uploads.get(day) + 1);
+
+            }
 
         }
 
+        List<UploadTrendDTO> result = new ArrayList<>();
+
+        uploads.forEach((day, count) ->
+                result.add(new UploadTrendDTO(day, count))
+        );
+
+        return result;
     }
 
-    List<UploadTrendDTO> result = new ArrayList<>();
 
-    uploads.forEach((day, count) ->
+    public List<RecentActivityDTO> getRecentActivity(User user) {
 
-            result.add(
-                    new UploadTrendDTO(day, count)
-            )
+        List<Document> documents = documentRepository.findByUser(user);
 
-    );
+        documents.sort((d1, d2) ->
+                d2.getUploadTime().compareTo(d1.getUploadTime()));
 
-    return result;
-
-}
-
-public List<RecentActivityDTO> getRecentActivity() {
-
-    List<Document> documents = documentRepository.findAll();
-
-    documents.sort((d1, d2) ->
-            d2.getUploadTime().compareTo(d1.getUploadTime()));
-
-    return documents.stream()
-
-            .limit(5)
-
-            .map(document -> new RecentActivityDTO(
-
-                    document.getFileName(),
-
-                    "Document Uploaded",
-
-                    document.getUploadTime()
-
-            ))
-
-            .toList();
-
-}
+        return documents.stream()
+                .limit(5)
+                .map(document -> new RecentActivityDTO(
+                        document.getFileName(),
+                        "Document Uploaded",
+                        document.getUploadTime()
+                ))
+                .toList();
+    }
 
 }

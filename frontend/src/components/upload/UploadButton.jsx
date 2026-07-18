@@ -1,3 +1,5 @@
+import { Upload } from "lucide-react";
+
 function UploadButton({ onFileSelect }) {
   return (
     <>
@@ -16,22 +18,27 @@ function UploadButton({ onFileSelect }) {
           inline-flex
           items-center
           justify-center
-          px-8
-          py-4
+          gap-3
           mt-6
           rounded-xl
-          bg-cyan-500
-          hover:bg-cyan-400
-          text-slate-900
+          bg-gradient-to-r
+          from-cyan-500
+          to-blue-600
+          px-8
+          py-4
           text-lg
-          font-bold
+          font-semibold
+          text-primary
           cursor-pointer
+          shadow-xl
           transition-all
           duration-300
-          hover:scale-105
-          shadow-lg
+          hover:scale-[1.03]
+          hover:shadow-2xl
+          active:scale-95
         "
       >
+        <Upload size={22} />
         Choose Files
       </label>
     </>

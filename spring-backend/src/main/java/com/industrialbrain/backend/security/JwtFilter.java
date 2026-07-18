@@ -1,17 +1,35 @@
 package com.industrialbrain.backend.security;
 
 import java.io.IOException;
+import java.util.List;
+
+import com.industrialbrain.backend.entity.User;
+import com.industrialbrain.backend.repository.UserRepository;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
+
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
+
+    public JwtFilter(
+            JwtService jwtService,
+            UserRepository userRepository) {
+
+        this.jwtService = jwtService;
+        this.userRepository = userRepository;
+    }
 
     @Override
     protected void doFilterInternal(
@@ -20,12 +38,68 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
+        System.out.println("\n==========================================");
+        System.out.println("JWT FILTER EXECUTED");
+        System.out.println("Request : " + request.getMethod() + " " + request.getRequestURI());
+
         String authHeader = request.getHeader("Authorization");
 
-        if (authHeader != null &&
-                authHeader.startsWith("Bearer ")) {
+        System.out.println("Authorization Header : " + authHeader);
 
-            String token = authHeader.substring(7);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+
+            System.out.println("No Bearer token found.");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = authHeader.substring(7);
+
+        System.out.println("Token Received :");
+        System.out.println(token);
+
+        try {
+
+            boolean valid = jwtService.validateToken(token);
+
+            System.out.println("Token Valid : " + valid);
+
+            if (!valid) {
+                System.out.println("JWT validation failed.");
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            String email = jwtService.extractEmail(token);
+
+            System.out.println("Email Extracted : " + email);
+
+            User user = userRepository.findByEmail(email).orElse(null);
+
+            if (user == null) {
+
+                System.out.println("User NOT found in database.");
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            System.out.println("User Found : " + user.getEmail());
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            user,
+                            null,
+                            List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                    );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            System.out.println("Authentication SUCCESS.");
+
+        } catch (Exception e) {
+
+            System.out.println("JWT Exception:");
+            e.printStackTrace();
 
         }
 

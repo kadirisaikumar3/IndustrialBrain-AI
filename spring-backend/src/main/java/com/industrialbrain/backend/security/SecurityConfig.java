@@ -2,15 +2,16 @@ package com.industrialbrain.backend.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 public class SecurityConfig {
@@ -26,27 +27,37 @@ public class SecurityConfig {
             throws Exception {
 
         http
-        .cors(Customizer.withDefaults())
-        .csrf(csrf -> csrf.disable())
+
+                .cors(Customizer.withDefaults())
+
+                .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
+                // Disable default Spring Security login mechanisms
+                .httpBasic(httpBasic -> httpBasic.disable())
+
+                .formLogin(form -> form.disable())
+
                 .authorizeHttpRequests(auth -> auth
 
+                        // Public APIs
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        .anyRequest().permitAll()
+                        // Health Check
+                        .requestMatchers("/api/dashboard/test").permitAll()
+
+                        // All remaining APIs require JWT
+                        .anyRequest().authenticated()
 
                 )
 
                 .addFilterBefore(
                         jwtFilter,
                         UsernamePasswordAuthenticationFilter.class
-                )
-
-                .httpBasic(Customizer.withDefaults());
+                );
 
         return http.build();
     }

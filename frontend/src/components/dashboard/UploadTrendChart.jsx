@@ -2,80 +2,105 @@ import { useEffect, useState } from "react";
 import API from "../../services/api";
 
 import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    Tooltip,
-    ResponsiveContainer,
-    CartesianGrid,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
 } from "recharts";
 
-
+import { useTheme } from "../../context/ThemeContext";
 
 function UploadTrendChart() {
+  const [data, setData] = useState([]);
 
-    const [data, setData] = useState([]);
+  const { theme } = useTheme();
 
-    useEffect(() => {
+  useEffect(() => {
+    loadTrend();
+  }, []);
 
-        loadTrend();
+  const loadTrend = async () => {
+    try {
+      const response = await API.get("/dashboard/trend");
+      setData(response.data);
+    } catch (error) {
+      console.error("Unable to load upload trend:", error);
+    }
+  };
 
-    }, []);
+  return (
+    <div className="card-bg rounded-3xl border border-theme p-6 shadow-xl">
 
-    const loadTrend = async () => {
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-primary">
+          📈 Weekly Upload Trend
+        </h2>
 
-        try {
+        <p className="mt-2 text-secondary">
+          Number of documents uploaded over the past week.
+        </p>
+      </div>
 
-            const response = await API.get("/dashboard/trend");
+      <ResponsiveContainer
+        width="100%"
+        height={320}
+      >
+        <LineChart data={data}>
 
-            setData(response.data);
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke={theme === "dark" ? "#334155" : "#d1d5db"}
+          />
 
-        } catch (error) {
+          <XAxis
+            dataKey="day"
+            stroke={theme === "dark" ? "#94a3b8" : "#475569"}
+          />
 
-            console.error("Unable to load upload trend:", error);
+          <YAxis
+            stroke={theme === "dark" ? "#94a3b8" : "#475569"}
+          />
 
-        }
+          <Tooltip
+            contentStyle={{
+              background:
+                theme === "dark"
+                  ? "#1e293b"
+                  : "#ffffff",
+              border:
+                theme === "dark"
+                  ? "1px solid #334155"
+                  : "1px solid #e5e7eb",
+              borderRadius: "12px",
+              color:
+                theme === "dark"
+                  ? "#f8fafc"
+                  : "#0f172a",
+            }}
+          />
 
-    };
+          <Line
+            type="monotone"
+            dataKey="uploads"
+            stroke="#06b6d4"
+            strokeWidth={4}
+            dot={{
+              r: 5,
+              fill: "#06b6d4",
+            }}
+            activeDot={{
+              r: 7,
+            }}
+          />
 
-    return (
+        </LineChart>
+      </ResponsiveContainer>
 
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6">
-
-            <h2 className="mb-6 text-2xl font-bold text-white">
-
-                📈 Weekly Upload Trend
-
-            </h2>
-
-            <ResponsiveContainer width="100%" height={300}>
-
-                <LineChart data={data}>
-
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-
-                    <XAxis dataKey="day" stroke="#94a3b8" />
-
-                    <YAxis stroke="#94a3b8" />
-
-                    <Tooltip />
-
-                    <Line
-                        type="monotone"
-                        dataKey="uploads"
-                        stroke="#22d3ee"
-                        strokeWidth={3}
-                    />
-
-                </LineChart>
-
-            </ResponsiveContainer>
-
-        </div>
-
-    );
-
+    </div>
+  );
 }
 
 export default UploadTrendChart;

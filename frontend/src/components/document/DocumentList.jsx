@@ -7,7 +7,6 @@ import {
     Trash2,
 } from "lucide-react";
 import API from "../../services/api";
-
 import { useNavigate } from "react-router-dom";
 
 function DocumentList() {
@@ -15,7 +14,6 @@ function DocumentList() {
     const navigate = useNavigate();
 
     const [documents, setDocuments] = useState([]);
-
     const [selectedDocument, setSelectedDocument] = useState(null);
     const [question, setQuestion] = useState("");
     const [answer, setAnswer] = useState("");
@@ -33,6 +31,7 @@ function DocumentList() {
             console.error(error);
         }
     };
+
     const deleteDocument = async (id) => {
 
         const confirmDelete = window.confirm(
@@ -73,8 +72,8 @@ function DocumentList() {
                 question,
                 {
                     headers: {
-                        "Content-Type": "text/plain"
-                    }
+                        "Content-Type": "text/plain",
+                    },
                 }
             );
 
@@ -95,156 +94,201 @@ function DocumentList() {
     };
 
     return (
+
         <div className="mt-12">
 
-            <h2 className="mb-6 text-3xl font-bold text-white">
+            <h2 className="mb-6 text-3xl font-bold text-primary">
                 Uploaded Documents
             </h2>
 
-            <div className="space-y-5">
+            {documents.length === 0 ? (
 
-                {documents.map((doc) => (
+                <div className="card-bg rounded-2xl p-10 text-center">
 
-                    <div
-                        key={doc.id}
-                        className="flex items-center justify-between rounded-2xl bg-slate-800 p-6 shadow-lg border border-slate-700 transition-all duration-300 hover:border-cyan-500 hover:shadow-cyan-500/20"
-                    >
+                    <FileText
+                        size={60}
+                        className="mx-auto mb-5 text-cyan-400"
+                    />
 
-                        <div className="flex items-center gap-5">
+                    <h3 className="text-2xl font-bold text-primary">
+                        No Documents Uploaded
+                    </h3>
 
-                            {doc.fileType.startsWith("image") ? (
+                    <p className="mt-3 text-secondary">
+                        Upload your first document to start AI-powered analysis.
+                    </p>
 
-                                <Image
-                                    size={36}
-                                    className="text-cyan-400"
-                                />
+                </div>
 
-                            ) : (
+            ) : (
 
-                                <FileText
-                                    size={36}
-                                    className="text-cyan-400"
-                                />
+                <div className="space-y-5">
 
-                            )}
+                    {documents.map((doc) => (
 
-                            <div>
+                        <div
+                            key={doc.id}
+                            className="flex items-center justify-between rounded-2xl card-bg p-6 shadow-lg card-hover hover:border-cyan-500 hover:shadow-cyan-500/20"
+                        >
 
-                                <h3 className="text-lg font-semibold text-white">
-                                    {doc.fileName}
-                                </h3>
+                            <div className="flex items-center gap-5">
 
-                                <p className="text-sm text-slate-400">
-                                    {(doc.fileSize / (1024 * 1024)).toFixed(2)} MB
-                                </p>
+                                {doc.fileType.startsWith("image") ? (
+
+                                    <Image
+                                        size={36}
+                                        className="text-cyan-400"
+                                    />
+
+                                ) : (
+
+                                    <FileText
+                                        size={36}
+                                        className="text-cyan-400"
+                                    />
+
+                                )}
+
+                                <div>
+
+                                    <h3 className="text-lg font-semibold text-primary">
+                                        {doc.fileName}
+                                    </h3>
+
+                                    <p className="text-sm text-secondary">
+                                        {(doc.fileSize / (1024 * 1024)).toFixed(2)} MB
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div className="flex gap-3">
+                                                                <button
+                                    onClick={() => navigate(`/pdf/${doc.id}`)}
+                                    className="rounded-lg search-box p-3 text-cyan-400 transition hover:bg-cyan-500 hover:text-primary"
+                                    title="Preview"
+                                >
+                                    <Eye size={20} />
+                                </button>
+
+                                <button
+                                    onClick={async () => {
+                                        try {
+
+                                            const token = localStorage.getItem("token");
+
+                                            const response = await API.get(
+                                                `/dashboard/download/${doc.id}`,
+                                                {
+                                                    responseType: "blob",
+                                                    headers: {
+                                                        Authorization: `Bearer ${token}`,
+                                                    },
+                                                }
+                                            );
+
+                                            const blob = new Blob(
+                                                [response.data],
+                                                {
+                                                    type: response.headers["content-type"],
+                                                }
+                                            );
+
+                                            const url = window.URL.createObjectURL(blob);
+
+                                            const link = document.createElement("a");
+
+                                            link.href = url;
+                                            link.download = doc.fileName;
+
+                                            document.body.appendChild(link);
+
+                                            link.click();
+
+                                            link.remove();
+
+                                            window.URL.revokeObjectURL(url);
+
+                                        } catch (err) {
+
+                                            console.error(err);
+
+                                            alert("Download failed");
+
+                                        }
+                                    }}
+                                    className="rounded-lg search-box p-3 text-green-400 transition hover:bg-green-500 hover:text-primary"
+                                    title="Download"
+                                >
+                                    <Download size={20} />
+                                </button>
+
+                                <button
+                                    onClick={() => deleteDocument(doc.id)}
+                                    className="rounded-lg search-box p-3 text-red-400 transition hover:bg-red-500 hover:text-primary"
+                                    title="Delete"
+                                >
+                                    <Trash2 size={20} />
+                                </button>
+
+                                <button
+                                    onClick={() => {
+
+                                        setSelectedDocument(doc);
+
+                                        setQuestion("");
+
+                                        setAnswer("");
+
+                                    }}
+                                    className="rounded-lg search-box p-3 text-yellow-400 transition hover:bg-yellow-500 hover:text-black"
+                                    title="Ask AI"
+                                >
+                                    ✨
+                                </button>
 
                             </div>
 
                         </div>
 
-                        <div className="flex gap-3">
+                    ))}
 
-                            <button
-    onClick={() => navigate(`/pdf/${doc.id}`)}
-    className="rounded-lg bg-slate-700 p-3 text-cyan-400 transition hover:bg-cyan-500 hover:text-white"
-    title="Preview"
->
-    <Eye size={20} />
-</button>
+                </div>
 
-                            <button
-    onClick={async () => {
-        try {
-            const response = await API.get(
-                `/dashboard/download/${doc.id}`,
-                {
-                    responseType: "blob",
-                }
-            );
-
-            const blob = new Blob([response.data], {
-                type: response.headers["content-type"],
-            });
-
-            const url = window.URL.createObjectURL(blob);
-
-            const link = document.createElement("a");
-            link.href = url;
-
-            // original filename
-            link.download = doc.fileName;
-
-            document.body.appendChild(link);
-            link.click();
-
-            link.remove();
-            window.URL.revokeObjectURL(url);
-        } catch (err) {
-            console.error(err);
-            alert("Download failed");
-        }
-    }}
-    className="rounded-lg bg-slate-700 p-3 text-green-400 transition hover:bg-green-500 hover:text-white"
-    title="Download"
->
-                                <Download size={20} />
-                            </button>
-
-                            <button
-                                onClick={() => deleteDocument(doc.id)}
-                                className="rounded-lg bg-slate-700 p-3 text-red-400 transition hover:bg-red-500 hover:text-white"
-                                title="Delete"
-                            >
-                                <Trash2 size={20} />
-                            </button>
-
-                            <button
-                                onClick={() => {
-
-                                    setSelectedDocument(doc);
-
-                                    setQuestion("");
-
-                                    setAnswer("");
-
-                                }}
-                                className="rounded-lg bg-slate-700 p-3 text-yellow-400 transition hover:bg-yellow-500 hover:text-black"
-                                title="Ask AI"
-                            >
-                                ✨
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                ))}
-
-            </div>
+            )}
 
             {selectedDocument && (
+
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
 
-                    <div className="w-full max-w-4xl max-h-[90vh] rounded-2xl bg-slate-800 border border-cyan-500 shadow-2xl flex flex-col">
+                    <div className="w-full max-w-4xl max-h-[90vh] rounded-2xl card-bg border border-theme shadow-2xl flex flex-col">
 
                         {/* Header */}
-                        <div className="flex items-center justify-between border-b border-slate-700 p-5">
+
+                        <div className="flex items-center justify-between border-b border-theme p-5">
 
                             <div>
-                                <h2 className="text-3xl font-bold text-white">
+
+                                <h2 className="text-3xl font-bold text-primary">
                                     🤖 Ask AI
                                 </h2>
 
                                 <p className="mt-1 text-cyan-400">
                                     {selectedDocument.fileName}
                                 </p>
+
                             </div>
 
                             <button
                                 onClick={() => {
+
                                     setSelectedDocument(null);
+
                                     setQuestion("");
+
                                     setAnswer("");
+
                                 }}
                                 className="text-3xl text-red-400 hover:text-red-300"
                             >
@@ -254,33 +298,33 @@ function DocumentList() {
                         </div>
 
                         {/* Body */}
-                        <div className="overflow-y-auto p-6 flex-1">
+
+                        <div className="overflow-y-auto flex-1 p-6">
 
                             <textarea
                                 rows={4}
                                 value={question}
                                 onChange={(e) => setQuestion(e.target.value)}
                                 placeholder="Ask anything about this document..."
-                                className="w-full rounded-xl bg-slate-700 p-4 text-white outline-none border border-slate-600"
+                                className="w-full rounded-xl search-box border border-theme p-4 text-primary outline-none"
                             />
-
-                            <button
+                                                        <button
                                 onClick={askAI}
                                 disabled={loadingAI}
-                                className="mt-5 rounded-xl bg-cyan-500 px-8 py-3 font-bold text-slate-900 hover:bg-cyan-400"
+                                className="mt-5 rounded-xl bg-cyan-500 px-8 py-3 font-bold card-bg transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {loadingAI ? "Thinking..." : "Ask AI"}
                             </button>
 
                             {answer && (
 
-                                <div className="mt-8 rounded-xl bg-slate-700 p-5">
+                                <div className="mt-8 rounded-xl search-box p-5">
 
                                     <h3 className="mb-4 text-2xl font-bold text-cyan-400">
                                         AI Response
                                     </h3>
 
-                                    <div className="max-h-[400px] overflow-y-auto whitespace-pre-wrap leading-8 text-white">
+                                    <div className="max-h-[400px] overflow-y-auto whitespace-pre-wrap leading-8 text-primary">
                                         {answer}
                                     </div>
 
@@ -293,8 +337,11 @@ function DocumentList() {
                     </div>
 
                 </div>
+
             )}
+
         </div>
+
     );
 }
 
