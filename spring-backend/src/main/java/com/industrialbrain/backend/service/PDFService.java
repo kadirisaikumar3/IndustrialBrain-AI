@@ -142,24 +142,43 @@ public class PDFService {
 
             for (int page = 0; page < document.getNumberOfPages(); page++) {
 
-                BufferedImage image =
-        renderer.renderImageWithDPI(page, 150, ImageType.RGB);
+                System.out.println("================================");
+System.out.println("Processing Page : " + (page + 1));
+System.out.println("================================");
 
-File tempImage =
-        Files.createTempFile("ocr-page-" + page, ".png").toFile();
+                BufferedImage image = null;
 
-ImageIO.write(image, "png", tempImage);
+File tempImage = null;
 
-// Free BufferedImage memory immediately
-image.flush();
-image = null;
+try {
+    
+    image = renderer.renderImageWithDPI(page, 72, ImageType.GRAY);
 
-String pageText =
-        ocrService.extractText(tempImage);
+    tempImage =
+            Files.createTempFile("ocr-page-" + page, ".png").toFile();
 
-ocrText.append(pageText).append("\n");
+    ImageIO.write(image, "png", tempImage);
 
-tempImage.delete();
+    image.flush();
+    image = null;
+
+    String pageText =
+            ocrService.extractText(tempImage);
+
+    ocrText.append(pageText).append("\n");
+
+} finally {
+
+    if (image != null) {
+        image.flush();
+    }
+
+    if (tempImage != null && tempImage.exists()) {
+        tempImage.delete();
+    }
+
+    System.gc();
+}
             }
 
             document.close();
