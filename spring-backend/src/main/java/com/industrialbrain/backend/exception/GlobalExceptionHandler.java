@@ -15,11 +15,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleException(Exception ex) {
 
+        ex.printStackTrace();   // <-- Add this
+
         Map<String, Object> response = new LinkedHashMap<>();
 
         response.put("success", false);
         response.put("message", "Something went wrong while processing your request.");
-        response.put("error", ex.getMessage());
+        response.put("error", ex.getClass().getName() + " : " + ex.getMessage());
         response.put("timestamp", LocalDateTime.now());
 
         return ResponseEntity
