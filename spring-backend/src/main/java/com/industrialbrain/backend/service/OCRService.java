@@ -66,11 +66,14 @@ public class OCRService {
             tesseract.setPageSegMode(1);
 
             // OCR Optimization
-            tesseract.setVariable("user_defined_dpi", "400");
+            tesseract.setVariable("user_defined_dpi", "120");
             tesseract.setVariable("preserve_interword_spaces", "1");
             tesseract.setVariable("tessedit_do_invert", "0");
 
             String text = tesseract.doOCR(processedFile);
+
+            processedImage.flush();
+originalImage.flush();
 
             // Delete temporary processed image
             if (!processedFile.delete()) {

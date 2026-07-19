@@ -23,10 +23,15 @@ public class PDFService {
     private static final Logger logger = LoggerFactory.getLogger(PDFService.class);
 
     private final OCRService ocrService;
+private final ImagePreprocessingService imagePreprocessingService;
 
-    public PDFService(OCRService ocrService) {
-        this.ocrService = ocrService;
-    }
+public PDFService(
+        OCRService ocrService,
+        ImagePreprocessingService imagePreprocessingService) {
+
+    this.ocrService = ocrService;
+    this.imagePreprocessingService = imagePreprocessingService;
+}
 
     public String extractText(String filePath) {
 
@@ -188,19 +193,29 @@ public class PDFService {
                 logger.info("Processing page {}", page + 1);
 
                 BufferedImage image =
-                        renderer.renderImageWithDPI(
-                                page,
-                                400,
-                                ImageType.RGB
-                        );
+        renderer.renderImageWithDPI(
+                page,
+                120,
+                ImageType.GRAY
+        );
 
-                File tempImage = Files
-                        .createTempFile("page-" + (page + 1) + "-", ".png")
-                        .toFile();
+BufferedImage processedImage =
+        imagePreprocessingService.preprocess(image);
 
-                ImageIO.write(image, "png", tempImage);
+File tempImage = Files
+        .createTempFile("page-" + (page + 1) + "-", ".png")
+        .toFile();
 
-                String pageText = ocrService.extractText(tempImage);
+ImageIO.write(processedImage, "png", tempImage);
+
+
+String pageText = ocrService.extractText(tempImage);
+
+processedImage.flush();
+processedImage = null;
+
+image.flush();
+image = null;
 
                 ocrText.append("\n");
                 ocrText.append("========== PAGE ")
@@ -220,7 +235,9 @@ public class PDFService {
 
             ocrDocument.close();
 
-            logger.info("OCR completed successfully.");
+System.gc();
+
+logger.info("OCR completed successfully.");
             logger.info("Extracted OCR text length: {}", ocrText.length());
 
             return ocrText.toString();
