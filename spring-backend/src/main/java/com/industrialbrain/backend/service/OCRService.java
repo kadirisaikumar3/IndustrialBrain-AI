@@ -41,11 +41,6 @@ public class OCRService {
                     imagePreprocessingService.preprocess(originalImage);
 
             // Save processed image temporarily
-            File processedFile =
-                    File.createTempFile("processed-", ".png");
-
-            ImageIO.write(processedImage, "png", processedFile);
-
             ITesseract tesseract = new Tesseract();
 
             String os = System.getProperty("os.name").toLowerCase();
@@ -70,16 +65,11 @@ public class OCRService {
             tesseract.setVariable("preserve_interword_spaces", "1");
             tesseract.setVariable("tessedit_do_invert", "0");
 
-            String text = tesseract.doOCR(processedFile);
+            String text = tesseract.doOCR(processedImage);
 
             processedImage.flush();
 originalImage.flush();
 
-            // Delete temporary processed image
-            if (!processedFile.delete()) {
-                logger.warn("Failed to delete temporary processed image: {}",
-                        processedFile.getAbsolutePath());
-            }
 
             logger.info("OCR completed successfully.");
             logger.info("OCR text length: {}", text.length());
