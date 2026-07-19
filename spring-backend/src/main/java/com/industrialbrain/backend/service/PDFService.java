@@ -87,12 +87,18 @@ public class PDFService {
 
                 URL url = new URL(filePath);
 
-                try (InputStream inputStream = url.openStream()) {
+File tempPdf = Files.createTempFile("cloudinary-pdf-", ".pdf").toFile();
 
-                    byte[] pdfBytes = inputStream.readAllBytes();
+try (InputStream inputStream = url.openStream()) {
 
-                    document = Loader.loadPDF(pdfBytes);
-                }
+    Files.copy(
+            inputStream,
+            tempPdf.toPath(),
+            StandardCopyOption.REPLACE_EXISTING
+    );
+}
+
+document = Loader.loadPDF(tempPdf);
 
             }
 
