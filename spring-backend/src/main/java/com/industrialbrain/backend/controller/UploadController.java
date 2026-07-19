@@ -13,6 +13,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+
+
 @RestController
 @RequestMapping("/api/dashboard")
 public class UploadController {
@@ -44,23 +50,50 @@ public class UploadController {
 
             User user = (User) authentication.getPrincipal();
 
-            Map uploadResult = cloudinaryService.uploadFile(file);
+            String filePath;
 
-            System.out.println("========== CLOUDINARY RESPONSE ==========");
-            System.out.println(uploadResult);
-            System.out.println("=========================================");
+if (file.getSize() <= 10 * 1024 * 1024) {
 
-            String fileUrl = uploadResult.get("secure_url").toString();
+    Map uploadResult = cloudinaryService.uploadFile(file);
 
-            System.out.println("Cloudinary URL : " + fileUrl);
+    System.out.println("========== CLOUDINARY RESPONSE ==========");
+    System.out.println(uploadResult);
+    System.out.println("=========================================");
 
+    filePath = uploadResult.get("secure_url").toString();
+
+    System.out.println("Cloudinary URL : " + filePath);
+
+} else {
+
+    Path uploadDir = Paths.get("uploads");
+
+    if (!Files.exists(uploadDir)) {
+        Files.createDirectories(uploadDir);
+    }
+
+    String fileName = System.currentTimeMillis() + "_"
+            + file.getOriginalFilename();
+
+    Path destination = uploadDir.resolve(fileName);
+
+    Files.copy(
+            file.getInputStream(),
+            destination,
+            StandardCopyOption.REPLACE_EXISTING
+    );
+
+    filePath = destination.toAbsolutePath().toString();
+
+    System.out.println("Local File Saved : " + filePath);
+}
             Document document = new Document(
-                    file.getOriginalFilename(),
-                    fileUrl,
-                    file.getContentType(),
-                    file.getSize(),
-                    LocalDateTime.now()
-            );
+        file.getOriginalFilename(),
+        filePath,
+        file.getContentType(),
+        file.getSize(),
+        LocalDateTime.now()
+);
 
             document.setUser(user);
 
