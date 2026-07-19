@@ -48,18 +48,35 @@ public class CloudinaryService {
         System.out.println("Uploading as Resource Type : " + resourceType);
         System.out.println("Public ID : " + publicId);
 
-        Map<String, Object> uploadResult =
-                cloudinary.uploader().upload(
-                        file.getBytes(),
-                        ObjectUtils.asMap(
-                                "resource_type", resourceType,
-                                "public_id", publicId,
-                                "use_filename", true,
-                                "unique_filename", false,
-                                "overwrite", true
-                        )
-                );
+        Map<String, Object> uploadResult;
 
+if (file.getSize() <= 10 * 1024 * 1024) {
+
+    uploadResult = cloudinary.uploader().upload(
+            file.getBytes(),
+            ObjectUtils.asMap(
+                    "resource_type", resourceType,
+                    "public_id", publicId,
+                    "use_filename", true,
+                    "unique_filename", false,
+                    "overwrite", true
+            )
+    );
+
+} else {
+
+    uploadResult = cloudinary.uploader().uploadLarge(
+            file.getBytes(),
+            ObjectUtils.asMap(
+                    "resource_type", resourceType,
+                    "public_id", publicId,
+                    "use_filename", true,
+                    "unique_filename", false,
+                    "overwrite", true
+            )
+    );
+
+}
         System.out.println("\n========== CLOUDINARY RESPONSE ==========");
 
         uploadResult.forEach((key, value) ->
