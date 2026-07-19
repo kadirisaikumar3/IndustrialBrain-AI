@@ -63,7 +63,7 @@ public class OCRService {
             tesseract.setOcrEngineMode(1);
 
             // Page Segmentation Mode
-            tesseract.setPageSegMode(1);
+            tesseract.setPageSegMode(3);
 
             // OCR Optimization
             tesseract.setVariable("user_defined_dpi", "120");

@@ -199,24 +199,16 @@ public PDFService(
                 ImageType.GRAY
         );
 
-BufferedImage processedImage =
-        imagePreprocessingService.preprocess(image);
-
 File tempImage = Files
         .createTempFile("page-" + (page + 1) + "-", ".png")
         .toFile();
 
-ImageIO.write(processedImage, "png", tempImage);
-
+ImageIO.write(image, "png", tempImage);
 
 String pageText = ocrService.extractText(tempImage);
 
-processedImage.flush();
-processedImage = null;
-
 image.flush();
 image = null;
-
                 ocrText.append("\n");
                 ocrText.append("========== PAGE ")
                         .append(page + 1)
