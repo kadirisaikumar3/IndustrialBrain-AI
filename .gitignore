@@ -20,3 +20,6 @@ target/
 # OS
 .DS_Store
 Thumbs.db
+
+# Google Vision service account keys
+src/main/resources/keys/

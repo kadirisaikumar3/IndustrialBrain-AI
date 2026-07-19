@@ -2,17 +2,21 @@ package com.industrialbrain.backend.service;
 
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
-import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @Service
 public class GeminiService {
 
+    private static final Logger logger =
+            LoggerFactory.getLogger(GeminiService.class);
+
     private final GeminiClientProvider provider;
 
-    // Gemini model
     @Value("${gemini.model}")
-private String model;
+    private String model;
 
     public GeminiService(GeminiClientProvider provider) {
         this.provider = provider;
@@ -31,21 +35,18 @@ private String model;
 
                 long seconds = provider.getRemainingCooldown(i) / 1000;
 
-                System.out.println();
-                System.out.println("----------------------------------");
-                System.out.println("Skipping API Key #" + (i + 1));
-                System.out.println("Cooldown Remaining : " + seconds + " sec");
-                System.out.println("----------------------------------");
+                logger.warn(
+                        "Skipping Gemini API Key #{} (Cooldown: {} sec remaining)",
+                        i + 1,
+                        seconds
+                );
 
                 continue;
             }
 
             String apiKey = keys[i];
 
-            System.out.println();
-            System.out.println("==================================");
-            System.out.println("Using Gemini API Key #" + (i + 1));
-            System.out.println("==================================");
+            logger.info("Using Gemini API Key #{}", i + 1);
 
             for (int attempt = 1; attempt <= 3; attempt++) {
 
@@ -53,54 +54,56 @@ private String model;
 
                     Client client = provider.getClient(apiKey);
 
-                    System.out.println("Model : " + model);
-                    
+                    logger.info("Using Gemini model: {}", model);
+
                     GenerateContentResponse response =
-        client.models.generateContent(
-                model,
-                prompt,
-                null
-        );
+                            client.models.generateContent(
+                                    model,
+                                    prompt,
+                                    null
+                            );
 
                     if (response != null
                             && response.text() != null
                             && !response.text().isBlank()) {
 
-                        System.out.println("SUCCESS using API Key #" + (i + 1));
+                        logger.info("Request successful using API Key #{}", i + 1);
 
                         int nextIndex = (i + 1) % keys.length;
                         provider.setCurrentKeyIndex(nextIndex);
 
-                        System.out.println("Next request will start from Key #" + (nextIndex + 1));
+                        logger.info(
+                                "Next request will start with API Key #{}",
+                                nextIndex + 1
+                        );
 
                         return response.text().trim();
                     }
 
                 } catch (Exception e) {
 
-                    String message = e.getMessage() == null ? "" : e.getMessage();
+                    String message =
+                            e.getMessage() == null ? "" : e.getMessage();
 
-                    System.out.println(
-                            "API Key #" + (i + 1)
-                                    + " Attempt " + attempt
-                                    + " -> " + message
+                    logger.error(
+                            "API Key #{} Attempt {} failed: {}",
+                            i + 1,
+                            attempt,
+                            message
                     );
 
                     String lower = message.toLowerCase();
-
-                    // Quota exceeded
+                                        // Quota exceeded
                     if (lower.contains("quota")
                             || lower.contains("429")
                             || lower.contains("too many requests")) {
 
                         provider.putOnCooldown(i, 15 * 60 * 1000);
 
-                        System.out.println();
-                        System.out.println("######################################");
-                        System.out.println("API Key #" + (i + 1));
-                        System.out.println("PUT ON 15 MINUTE COOLDOWN");
-                        System.out.println("Switching to next API key...");
-                        System.out.println("######################################");
+                        logger.warn(
+                                "API Key #{} exceeded quota. Put on 15-minute cooldown.",
+                                i + 1
+                        );
 
                         break;
                     }
@@ -112,13 +115,10 @@ private String model;
 
                         provider.putOnCooldown(i, 24 * 60 * 60 * 1000);
 
-                        System.out.println();
-                        System.out.println("######################################");
-                        System.out.println("API Key #" + (i + 1));
-                        System.out.println("MODEL NOT AVAILABLE");
-                        System.out.println("PUT ON 24 HOUR COOLDOWN");
-                        System.out.println("Switching to next API key...");
-                        System.out.println("######################################");
+                        logger.error(
+                                "API Key #{} model unavailable. Put on 24-hour cooldown.",
+                                i + 1
+                        );
 
                         break;
                     }
@@ -130,13 +130,10 @@ private String model;
 
                         provider.putOnCooldown(i, 24 * 60 * 60 * 1000);
 
-                        System.out.println();
-                        System.out.println("######################################");
-                        System.out.println("API Key #" + (i + 1));
-                        System.out.println("INVALID API KEY");
-                        System.out.println("PUT ON 24 HOUR COOLDOWN");
-                        System.out.println("Switching to next API key...");
-                        System.out.println("######################################");
+                        logger.error(
+                                "API Key #{} is invalid. Put on 24-hour cooldown.",
+                                i + 1
+                        );
 
                         break;
                     }
@@ -147,6 +144,11 @@ private String model;
                             || lower.contains("deadline")
                             || lower.contains("timeout")) {
 
+                        logger.warn(
+                                "Temporary Gemini server issue. Retrying... Attempt {}",
+                                attempt
+                        );
+
                         try {
                             Thread.sleep(2000);
                         } catch (InterruptedException ignored) {
@@ -156,10 +158,15 @@ private String model;
                         continue;
                     }
 
+                    logger.error("Unhandled Gemini error: {}", message);
+
                     return "Gemini Error: " + message;
-                }
+
+                                    }
             }
         }
+
+        logger.error("All Gemini API keys are currently unavailable.");
 
         return "All Gemini API keys are currently unavailable. Please try again in a few minutes.";
     }

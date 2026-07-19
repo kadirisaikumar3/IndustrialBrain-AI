@@ -5,6 +5,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -18,6 +20,8 @@ import java.nio.file.StandardCopyOption;
 @Service
 public class PDFService {
 
+    private static final Logger logger = LoggerFactory.getLogger(PDFService.class);
+
     private final OCRService ocrService;
 
     public PDFService(OCRService ocrService) {
@@ -28,18 +32,16 @@ public class PDFService {
 
         try {
 
-
-
             String lowerPath = filePath.toLowerCase();
+
+            // ================= IMAGE OCR =================
 
             if (lowerPath.endsWith(".png")
                     || lowerPath.endsWith(".jpg")
                     || lowerPath.endsWith(".jpeg")) {
 
-                System.out.println("================================");
-                System.out.println("IMAGE DETECTED");
-                System.out.println(filePath);
-                System.out.println("================================");
+                logger.info("Image detected.");
+                logger.info("Processing file: {}", filePath);
 
                 File imageFile;
 
@@ -68,143 +70,164 @@ public class PDFService {
                 String text = ocrService.extractText(imageFile);
 
                 if (imageFile.getName().startsWith("ocr-image-")) {
-                    imageFile.delete();
+                    if (!imageFile.delete()) {
+                        logger.warn("Failed to delete temporary image: {}", imageFile.getAbsolutePath());
+                    }
                 }
 
                 return text;
             }
 
+            // ================= LOAD PDF =================
+
             PDDocument document;
-
-
 
             if (filePath.startsWith("http")) {
 
-                System.out.println("================================");
-                System.out.println("Reading PDF from Cloudinary");
-                System.out.println(filePath);
-                System.out.println("================================");
+                logger.info("Reading PDF from Cloudinary.");
+                logger.info("PDF URL: {}", filePath);
 
                 URL url = new URL(filePath);
 
-File tempPdf = Files.createTempFile("cloudinary-pdf-", ".pdf").toFile();
+                File tempPdf = Files
+                        .createTempFile("cloudinary-pdf-", ".pdf")
+                        .toFile();
 
-try (InputStream inputStream = url.openStream()) {
+                try (InputStream inputStream = url.openStream()) {
 
-    Files.copy(
-            inputStream,
-            tempPdf.toPath(),
-            StandardCopyOption.REPLACE_EXISTING
-    );
-}
+                    Files.copy(
+                            inputStream,
+                            tempPdf.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING
+                    );
+                }
 
-document = Loader.loadPDF(tempPdf);
+                document = Loader.loadPDF(tempPdf);
 
+            } else {
+
+                document = Loader.loadPDF(new File(filePath));
             }
 
-
-
-            else {
-
-                File file = new File(filePath);
-
-                System.out.println("================================");
-                System.out.println("Reading PDF from Local Storage");
-                System.out.println(file.getAbsolutePath());
-                System.out.println("Exists : " + file.exists());
-                System.out.println("================================");
-
-                document = Loader.loadPDF(file);
-            }
-
-
+            // ================= SEARCHABLE PDF =================
 
             PDFTextStripper stripper = new PDFTextStripper();
 
-            String text = stripper.getText(document);
+            StringBuilder searchableText = new StringBuilder();
 
-            if (text != null && !text.isBlank()) {
+            boolean hasSelectableText = false;
 
-                System.out.println("================================");
-                System.out.println("PDF TEXT FOUND");
-                System.out.println("TEXT LENGTH = " + text.length());
-                System.out.println("================================");
+            for (int page = 1; page <= document.getNumberOfPages(); page++) {
+
+                stripper.setStartPage(page);
+                stripper.setEndPage(page);
+
+                String pageText = stripper.getText(document).trim();
+
+                if (!pageText.isEmpty()) {
+
+                    hasSelectableText = true;
+
+                    searchableText.append("\n");
+                    searchableText.append("========== PAGE ")
+                            .append(page)
+                            .append(" ==========\n\n");
+
+                    searchableText.append(pageText);
+                    searchableText.append("\n\n");
+                }
+            }
+
+            if (hasSelectableText) {
+
+                logger.info("Searchable PDF detected.");
+                logger.info("Extracted text length: {}", searchableText.length());
 
                 document.close();
 
-                return text;
+                return searchableText.toString();
             }
 
-
-
-            System.out.println("================================");
-            System.out.println("No selectable text found.");
-            System.out.println("Running OCR...");
-            System.out.println("================================");
-
-            PDFRenderer renderer = new PDFRenderer(document);
-
-            StringBuilder ocrText = new StringBuilder();
-
-            for (int page = 0; page < document.getNumberOfPages(); page++) {
-
-                System.out.println("================================");
-System.out.println("Processing Page : " + (page + 1));
-System.out.println("================================");
-
-                BufferedImage image = null;
-
-File tempImage = null;
-
-try {
-    
-    image = renderer.renderImage(page, 0.5f, ImageType.GRAY);
-
-    tempImage =
-            Files.createTempFile("ocr-page-" + page, ".png").toFile();
-
-    ImageIO.write(image, "png", tempImage);
-
-    image.flush();
-    image = null;
-
-    String pageText =
-            ocrService.extractText(tempImage);
-
-    ocrText.append(pageText).append("\n");
-
-} finally {
-
-    if (image != null) {
-        image.flush();
-    }
-
-    if (tempImage != null && tempImage.exists()) {
-        tempImage.delete();
-    }
-
-    System.gc();
-}
-            }
+            logger.info("Scanned PDF detected. Running OCR.");
 
             document.close();
 
-            System.gc();
+            // ================= OCR PDF =================
 
-            System.out.println("================================");
-            System.out.println("OCR FINISHED");
-            System.out.println("OCR TEXT LENGTH = " + ocrText.length());
-            System.out.println("================================");
+            PDDocument ocrDocument;
+
+            if (filePath.startsWith("http")) {
+
+                URL url = new URL(filePath);
+
+                File tempPdf = Files
+                        .createTempFile("ocr-pdf-", ".pdf")
+                        .toFile();
+
+                try (InputStream inputStream = url.openStream()) {
+
+                    Files.copy(
+                            inputStream,
+                            tempPdf.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING
+                    );
+                }
+
+                ocrDocument = Loader.loadPDF(tempPdf);
+
+            } else {
+
+                ocrDocument = Loader.loadPDF(new File(filePath));
+            }
+                        PDFRenderer renderer = new PDFRenderer(ocrDocument);
+
+            StringBuilder ocrText = new StringBuilder();
+
+            for (int page = 0; page < ocrDocument.getNumberOfPages(); page++) {
+
+                logger.info("Processing page {}", page + 1);
+
+                BufferedImage image =
+                        renderer.renderImageWithDPI(
+                                page,
+                                400,
+                                ImageType.RGB
+                        );
+
+                File tempImage = Files
+                        .createTempFile("page-" + (page + 1) + "-", ".png")
+                        .toFile();
+
+                ImageIO.write(image, "png", tempImage);
+
+                String pageText = ocrService.extractText(tempImage);
+
+                ocrText.append("\n");
+                ocrText.append("========== PAGE ")
+                        .append(page + 1)
+                        .append(" ==========\n\n");
+
+                ocrText.append(pageText);
+                ocrText.append("\n\n");
+
+                if (tempImage.exists()) {
+                    if (!tempImage.delete()) {
+                        logger.warn("Failed to delete temporary image: {}",
+                                tempImage.getAbsolutePath());
+                    }
+                }
+            }
+
+            ocrDocument.close();
+
+            logger.info("OCR completed successfully.");
+            logger.info("Extracted OCR text length: {}", ocrText.length());
 
             return ocrText.toString();
 
         } catch (Exception e) {
 
-            System.out.println("==============================");
-            System.out.println("PDF EXTRACTION ERROR");
-            System.out.println("==============================");
-
-            e.printStackTrace();
+            logger.error("Error extracting PDF text.", e);
 
             return "Error extracting PDF text.";
         }

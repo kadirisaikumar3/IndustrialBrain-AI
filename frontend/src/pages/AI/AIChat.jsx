@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import API from "../../services/api";
 
 import AppLayout from "../../components/layout/AppLayout";
+import { toast } from "react-toastify";
 
 function AIChat() {
 
@@ -28,7 +29,7 @@ function AIChat() {
     } catch (error) {
 
       console.error(error);
-      alert("Unable to load documents.");
+      toast.error("Unable to load documents.");
 
     }
 
@@ -36,13 +37,15 @@ function AIChat() {
 
   const askAI = async () => {
 
+    if (loading) return;
+
     if (!selectedDocument) {
-      alert("Please select a document.");
+      toast.warning("Please select a document.");
       return;
     }
 
     if (question.trim() === "") {
-      alert("Please enter your question.");
+      toast.warning("Please enter your question.");
       return;
     }
 
@@ -62,6 +65,8 @@ function AIChat() {
       );
 
       setAnswer(response.data);
+
+      toast.success("Response generated successfully!");
 
     } catch (error) {
 
@@ -131,6 +136,7 @@ function AIChat() {
               </p>
 
               <select
+    disabled={loading}
                 value={selectedDocument}
                 onChange={(e) => setSelectedDocument(e.target.value)}
                 className="mt-6 w-full rounded-xl border border-theme search-box p-4 text-primary outline-none transition-all focus:border-cyan-400"
@@ -168,6 +174,7 @@ function AIChat() {
               </p>
 
               <textarea
+    disabled={loading}
                 rows={7}
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}

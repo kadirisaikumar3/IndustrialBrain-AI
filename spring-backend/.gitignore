@@ -54,3 +54,5 @@ uploads/
 
 # Local secrets
 src/main/resources/application.properties
+
+src/main/resources/keys/
