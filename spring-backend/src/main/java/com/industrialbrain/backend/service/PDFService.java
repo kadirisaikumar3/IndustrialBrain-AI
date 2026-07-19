@@ -158,7 +158,7 @@ File tempImage = null;
 
 try {
     
-    image = renderer.renderImageWithDPI(page, 50, ImageType.GRAY);
+    image = renderer.renderImage(page, 0.5f, ImageType.GRAY);
 
     tempImage =
             Files.createTempFile("ocr-page-" + page, ".png").toFile();
