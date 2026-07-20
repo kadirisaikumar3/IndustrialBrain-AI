@@ -318,17 +318,11 @@ DOCUMENT:
             @PathVariable Long id,
             @RequestBody String question) {
 
-                System.out.println("========== askDocument() CALLED ==========");
-
-                System.out.println("Document ID: " + id);
-System.out.println("Question: " + question);
-
         Authentication authentication =
         SecurityContextHolder.getContext().getAuthentication();
 
 User user = (User) authentication.getPrincipal();
 
-System.out.println("Authenticated User ID: " + user.getId());
 System.out.println("Looking up document ID: " + id);
 
 

@@ -40,7 +40,24 @@ const CustomNode = ({ data }) => {
   return (
 
     <div
-      className={`relative flex min-h-[90px] w-[220px] items-center justify-center rounded-2xl border-2 font-bold text-center transition-all duration-300 ${borderClass}`}
+  className={`
+    relative
+    flex
+    min-h-[90px]
+    w-[220px]
+    items-center
+    justify-center
+    rounded-2xl
+    border-2
+    font-bold
+    text-center
+    transition-all
+    duration-300
+    hover:scale-105
+    hover:shadow-[0_0_30px_rgba(34,211,238,0.45)]
+    ${borderClass}
+    ${data.faded ? "opacity-30 blur-[1px]" : "opacity-100"}
+  `}
       style={{
         background: data.color || "linear-gradient(135deg,#2563eb,#3b82f6)",
         color: "white",
@@ -53,7 +70,15 @@ const CustomNode = ({ data }) => {
       />
 
       <span className="px-3">
-        {data.label}
+        <>
+  {data.selected && (
+    <div className="absolute -inset-2 animate-pulse rounded-2xl border-2 border-cyan-300 opacity-40" />
+  )}
+
+  <span className="relative px-3">
+    {data.label}
+  </span>
+</>
       </span>
 
       <Handle
@@ -117,6 +142,8 @@ function KnowledgeGraph() {
 
   const [searchText, setSearchText] = useState("");
 
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
 
@@ -140,12 +167,21 @@ function KnowledgeGraph() {
 
   const [edgeCount, setEdgeCount] = useState(0);
 
+  const [rootNodeCount, setRootNodeCount] = useState(0);
+
+const [leafNodeCount, setLeafNodeCount] = useState(0);
+
+const [graphStatus, setGraphStatus] = useState("Healthy");
+
   const [selectedDocumentName, setSelectedDocumentName] =
     useState("");
 
   const graphRef = useRef(null);
 
   const reactFlowInstance = useRef(null);
+  const graphContainerRef = useRef(null);
+
+
     /* -----------------------------
      Load Documents
   ------------------------------ */
@@ -163,6 +199,21 @@ function KnowledgeGraph() {
   useEffect(() => {
 
     setNodes((prev) => {
+
+      const suggestions =
+  searchText.trim() === ""
+    ? []
+    : prev
+        .filter((node) =>
+          node.data.label
+            .toLowerCase()
+            .includes(searchText.toLowerCase())
+        )
+        .slice(0, 5);
+
+setSearchSuggestions(
+  suggestions.map((node) => node.data.label)
+);
 
       const updated = prev.map((node) => ({
 
@@ -330,6 +381,70 @@ scale(${viewport.zoom})
 
   };
 
+  const exportGraphJson = () => {
+
+  try {
+
+    const graphData = {
+
+      generatedAt: new Date().toISOString(),
+
+      statistics: {
+
+        nodes: nodeCount,
+
+        edges: edgeCount,
+
+        rootNodes: rootNodeCount,
+
+        leafNodes: leafNodeCount,
+
+      },
+
+      nodes,
+
+      edges,
+
+    };
+
+    const blob = new Blob(
+
+      [JSON.stringify(graphData, null, 2)],
+
+      { type: "application/json" }
+
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+
+    link.download = "knowledge-graph.json";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+
+    toast.success("Knowledge Graph JSON exported!");
+
+  } catch (err) {
+
+    console.error(err);
+
+    toast.error("Unable to export JSON.");
+
+  }
+
+};
+
+
+
   const resetView = () => {
 
     if (!reactFlowInstance.current) return;
@@ -343,6 +458,67 @@ scale(${viewport.zoom})
     });
 
   };
+
+  const zoomIn = () => {
+
+  if (!reactFlowInstance.current) return;
+
+  reactFlowInstance.current.zoomIn({
+    duration: 300,
+  });
+
+};
+
+const zoomOut = () => {
+
+  if (!reactFlowInstance.current) return;
+
+  reactFlowInstance.current.zoomOut({
+    duration: 300,
+  });
+
+};
+
+const fitGraph = () => {
+
+  if (!reactFlowInstance.current) return;
+
+  reactFlowInstance.current.fitView({
+    padding: 0.20,
+    duration: 700,
+  });
+
+};
+
+const toggleFullscreen = async () => {
+
+  if (!graphContainerRef.current) return;
+
+  try {
+
+    if (!document.fullscreenElement) {
+
+      await graphContainerRef.current.requestFullscreen();
+
+      toast.success("Entered Fullscreen");
+
+    } else {
+
+      await document.exitFullscreen();
+
+      toast.success("Exited Fullscreen");
+
+    }
+
+  } catch (err) {
+
+    console.error(err);
+
+    toast.error("Fullscreen not supported.");
+
+  }
+
+};
 
   /* -----------------------------
      Dagre Layout
@@ -591,6 +767,26 @@ scale(${viewport.zoom})
 
       setEdgeCount(layoutedGraph.edges.length);
 
+      // Root Nodes (no incoming edges)
+const rootNodes = graph.nodes.filter(
+  (node) => !parentMap[node.id]
+);
+
+// Leaf Nodes (no outgoing edges)
+const leafNodes = graph.nodes.filter(
+  (node) => !childMap[node.id]
+);
+
+setRootNodeCount(rootNodes.length);
+
+setLeafNodeCount(leafNodes.length);
+
+setGraphStatus(
+  layoutedGraph.nodes.length > 0
+    ? "Healthy"
+    : "Empty"
+);
+
       const selectedDoc = documents.find(
 
         (doc) => doc.id == selectedDocument
@@ -800,6 +996,26 @@ scale(${viewport.zoom})
 
           />
 
+            {searchSuggestions.length > 0 && (
+
+  <div className="mt-2 rounded-xl border border-theme overflow-hidden">
+
+    {searchSuggestions.map((item) => (
+
+      <button
+        key={item}
+        onClick={() => setSearchText(item)}
+        className="block w-full border-b border-theme px-4 py-3 text-left transition hover:bg-cyan-500 hover:text-white last:border-b-0"
+      >
+        📌 {item}
+      </button>
+
+    ))}
+
+  </div>
+
+)}
+
         </div>
 
         {/* Empty State */}
@@ -902,46 +1118,68 @@ scale(${viewport.zoom})
               <div className="rounded-3xl card-bg p-6 shadow-xl">
 
                 <h3 className="mb-5 text-xl font-bold text-primary">
+  📊 Graph Analytics
+</h3>
 
-                  📊 Statistics
+<div className="space-y-4">
 
-                </h3>
+  <div className="rounded-xl bg-blue-500/10 p-4">
+    <p className="text-sm text-secondary">
+      Total Nodes
+    </p>
+    <p className="text-3xl font-bold text-blue-500">
+      {nodeCount}
+    </p>
+  </div>
 
-                <div className="space-y-4">
+  <div className="rounded-xl bg-green-500/10 p-4">
+    <p className="text-sm text-secondary">
+      Total Edges
+    </p>
+    <p className="text-3xl font-bold text-green-500">
+      {edgeCount}
+    </p>
+  </div>
 
-                  <div className="rounded-xl bg-blue-500/10 p-4">
+  <div className="rounded-xl bg-yellow-500/10 p-4">
+    <p className="text-sm text-secondary">
+      Root Nodes
+    </p>
+    <p className="text-3xl font-bold text-yellow-500">
+      {rootNodeCount}
+    </p>
+  </div>
 
-                    <p className="text-sm text-secondary">
+  <div className="rounded-xl bg-purple-500/10 p-4">
+    <p className="text-sm text-secondary">
+      Leaf Nodes
+    </p>
+    <p className="text-3xl font-bold text-purple-500">
+      {leafNodeCount}
+    </p>
+  </div>
 
-                      Nodes
+  <div className="rounded-xl bg-orange-500/10 p-4">
+    <p className="text-sm text-secondary">
+      Selected Node
+    </p>
+    <p className="truncate text-lg font-bold text-orange-500">
+      {selectedNode?.data?.label || "-"}
+    </p>
+  </div>
 
-                    </p>
+  <div className="rounded-xl bg-emerald-500/10 p-4">
+    <p className="text-sm text-secondary">
+      Graph Status
+    </p>
+    <p className="text-lg font-bold text-emerald-500">
+      {graphStatus === "Healthy"
+        ? "✅ Healthy"
+        : "⚠️ Empty"}
+    </p>
+  </div>
 
-                    <p className="mt-1 text-3xl font-bold text-blue-500">
-
-                      {nodeCount}
-
-                    </p>
-
-                  </div>
-
-                  <div className="rounded-xl bg-green-500/10 p-4">
-
-                    <p className="text-sm text-secondary">
-
-                      Edges
-
-                    </p>
-
-                    <p className="mt-1 text-3xl font-bold text-green-500">
-
-                      {edgeCount}
-
-                    </p>
-
-                  </div>
-
-                </div>
+</div>
 
               </div>
 
@@ -1050,70 +1288,147 @@ scale(${viewport.zoom})
 
                   </button>
 
+                  <button
+    onClick={exportGraphJson}
+    className="rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 px-5 py-3 font-semibold text-white transition hover:scale-[1.02]"
+>
+    Export JSON
+</button>
+
                 </div>
 
               </div>
 
               <div
-
-                ref={graphRef}
+    ref={graphContainerRef}
+    className="relative"
+>
+    <div
+        ref={graphRef}
 
                 className="h-[700px] overflow-hidden rounded-2xl border border-theme"
 
               >
 
-                <ReactFlow
+                {loading ? (
 
-                  nodes={nodes}
+    <div className="flex h-full flex-col items-center justify-center">
 
-                  edges={edges}
+        <div className="mb-8 h-16 w-16 animate-spin rounded-full border-4 border-cyan-500 border-t-transparent"></div>
 
-                  onNodeClick={explainNode}
+        <h2 className="text-3xl font-bold text-cyan-400">
+            🧠 Building Knowledge Graph...
+        </h2>
 
-                  nodeTypes={nodeTypes}
+        <div className="mt-10 w-[320px]">
 
-                  fitView
+            <div className="h-3 overflow-hidden rounded-full bg-slate-700">
 
-                  fitViewOptions={fitViewOptions}
+                <div className="h-full w-full animate-pulse rounded-full bg-cyan-400"></div>
 
-                  defaultEdgeOptions={defaultEdgeOptions}
+            </div>
 
-                  minZoom={0.2}
+        </div>
 
-                  maxZoom={2}
+        <div className="mt-10 space-y-3 text-center">
 
-                  attributionPosition="bottom-left"
+            <p className="text-secondary">
+                📄 Reading document...
+            </p>
 
-                  onInit={(instance) => {
+            <p className="text-secondary">
+                🧩 Extracting concepts...
+            </p>
 
-                    reactFlowInstance.current = instance;
+            <p className="text-secondary">
+                🔗 Building relationships...
+            </p>
 
-                  }}
+            <p className="text-secondary">
+                🤖 Optimizing layout...
+            </p>
 
-                >
+            <p className="text-secondary">
+                ✨ Rendering graph...
+            </p>
 
-                  <Background
+        </div>
 
-                    gap={18}
+    </div>
 
-                    size={1.2}
+) : (
 
-                  />
+    <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodeClick={explainNode}
+        nodeTypes={nodeTypes}
+        fitView
+        fitViewOptions={fitViewOptions}
+        defaultEdgeOptions={defaultEdgeOptions}
+        minZoom={0.2}
+        maxZoom={2}
+        attributionPosition="bottom-left"
+        onInit={(instance) => {
+            reactFlowInstance.current = instance;
+        }}
+    >
+        <Background gap={18} size={1.2} />
+        <Controls />
+        <MiniMap pannable zoomable />
+    </ReactFlow>
 
-                  <Controls />
+)}
 
-                  <MiniMap
+                {/* Floating Toolbar */}
 
-                    pannable
+<div className="absolute right-6 top-6 z-50 flex flex-col gap-3">
 
-                    zoomable
+  <button
+    onClick={zoomIn}
+    className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900/90 text-xl text-white shadow-xl transition-all duration-200 hover:scale-110 hover:bg-cyan-500"
+    title="Zoom In"
+  >
+    ➕
+  </button>
 
-                  />
+  <button
+    onClick={zoomOut}
+    className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900/90 text-xl text-white shadow-xl transition-all duration-200 hover:scale-110 hover:bg-cyan-500"
+    title="Zoom Out"
+  >
+    ➖
+  </button>
 
-                </ReactFlow>
+  <button
+    onClick={fitGraph}
+    className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900/90 text-xl text-white shadow-xl transition-all duration-200 hover:scale-110 hover:bg-emerald-500"
+    title="Fit Graph"
+  >
+    🎯
+  </button>
+
+  <button
+    onClick={toggleFullscreen}
+    className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900/90 text-xl text-white shadow-xl transition-all duration-200 hover:scale-110 hover:bg-indigo-500"
+    title="Fullscreen"
+  >
+    🖥
+  </button>
+
+  <button
+    onClick={exportGraph}
+    className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900/90 text-xl text-white shadow-xl transition-all duration-200 hover:scale-110 hover:bg-green-500"
+    title="Export PNG"
+  >
+    📸
+  </button>
+
+</div>
 
               </div>
 
+            </div>
             </div>
                         {/* AI Explanation */}
 
@@ -1143,9 +1458,9 @@ scale(${viewport.zoom})
 
                   <div className="mb-6 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 p-5">
 
-                    <h3 className="text-xl font-bold text-white">
+                    <h3 className="flex items-center gap-3 text-xl font-bold text-white">
 
-                      {selectedNode.data.label}
+                      🧠 {selectedNode.data.label}
 
                     </h3>
 
