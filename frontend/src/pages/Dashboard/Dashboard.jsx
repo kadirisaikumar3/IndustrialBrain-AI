@@ -46,6 +46,8 @@ function Dashboard() {
 
 const [currentTime, setCurrentTime] = useState(new Date());
 
+const [downloadingId, setDownloadingId] = useState(null);
+
 
   useEffect(() => {
     fetchDocuments();
@@ -140,13 +142,12 @@ useEffect(() => {
     }
   };
 
-  const downloadDocument = async (id) => {
+ const downloadDocument = async (id) => {
+  if (downloadingId === id) return;
 
+setDownloadingId(id);
     try {
-
-        const selectedDoc = documents.find(
-            doc => doc.id === id
-        );
+        const selectedDoc = documents.find(doc => doc.id === id);
 
         const response = await API.get(
             `/dashboard/download/${id}`,
@@ -164,7 +165,7 @@ useEffect(() => {
 
         const url = window.URL.createObjectURL(blob);
 
-        const link = window.document.createElement("a");
+        const link = document.createElement("a");
 
         link.href = url;
 
@@ -172,31 +173,23 @@ useEffect(() => {
             ? selectedDoc.fileName
             : "download";
 
-        window.document.body.appendChild(link);
+        document.body.appendChild(link);
 
         link.click();
 
-        link.remove();
+        document.body.removeChild(link);
 
         window.URL.revokeObjectURL(url);
 
-        window.document.body.appendChild(link);
-
-link.click();
-
-link.remove();
-
-window.URL.revokeObjectURL(url);
-
-toast.success("Document downloaded successfully!", {
-  position: "top-right",
-  autoClose: 3000,
-  hideProgressBar: false,
-  closeOnClick: true,
-  pauseOnHover: true,
-  draggable: true,
-  theme: "colored",
-});
+        toast.success("Document downloaded successfully!", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "colored",
+        });
 
     } catch (error) {
 
@@ -205,8 +198,8 @@ toast.success("Document downloaded successfully!", {
         toast.error("Download failed.");
 
     }
-
 };
+
 
   const deleteDocument = async (id) => {
     const confirmed = window.confirm(
@@ -681,12 +674,17 @@ const systemStatus = [
 </button>
 
                       <button
-                        onClick={() => downloadDocument(doc.id)}
-                        className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-500 to-sky-600 px-4 py-2 font-semibold card-bg transition hover:bg-cyan-400"
-                      >
-                        <Download size={18} />
-                        Download
-                      </button>
+    disabled={downloadingId === doc.id}
+    onClick={() => downloadDocument(doc.id)}
+    className={`flex items-center gap-2 rounded-lg px-4 py-2 font-semibold transition ${
+        downloadingId === doc.id
+            ? "bg-gray-500 cursor-not-allowed"
+            : "bg-gradient-to-r from-cyan-500 to-sky-600 card-bg hover:bg-cyan-400"
+    }`}
+>
+    <Download size={18} />
+    {downloadingId === doc.id ? "Downloading..." : "Download"}
+</button>
 
                       <button
                         onClick={() => deleteDocument(doc.id)}
