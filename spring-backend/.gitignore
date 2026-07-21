@@ -54,5 +54,7 @@ uploads/
 
 # Local secrets
 src/main/resources/application.properties
-
 src/main/resources/keys/
+
+# Build artifacts
+BOOT-INF/
