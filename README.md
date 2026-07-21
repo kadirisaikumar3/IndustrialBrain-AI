@@ -13,6 +13,10 @@ Transforming Industrial Documents into Intelligent Knowledge using OCR, Google G
 </p>
 
 <p align="center">
+🚀 Developed for <b>ET AI Hackathon 2.0 – Phase 2 Prototype Submission</b>
+</p>
+
+<p align="center">
 
 <img src="https://img.shields.io/badge/React-19-blue?logo=react">
 <img src="https://img.shields.io/badge/SpringBoot-3.5-green?logo=springboot">
@@ -23,6 +27,7 @@ Transforming Industrial Documents into Intelligent Knowledge using OCR, Google G
 <img src="https://img.shields.io/badge/JWT-Security-yellow">
 <img src="https://img.shields.io/badge/Cloudinary-Storage-blue">
 <img src="https://img.shields.io/badge/License-MIT-success">
+<img src="https://img.shields.io/badge/ET%20AI-Hackathon%202026-blueviolet">
 
 </p>
 
@@ -38,6 +43,30 @@ IndustrialBrain AI addresses this challenge by combining **Optical Character Rec
 
 Built using **React**, **Spring Boot**, **PostgreSQL (Neon)**, **Neo4j**, **Tess4J OCR**, **JWT Authentication**, and **Cloudinary**, the platform enables secure document management, intelligent search, AI-powered question answering, and knowledge discovery.
 
+# 🎥 Live Demo
+
+## 🌐 Live Application
+
+Frontend:
+https://industrialbrain-frontend.onrender.com
+
+Backend API:
+https://industrialbrain-backend.onrender.com
+
+## 🎬 Demo Video
+
+Google Drive:
+https://drive.google.com/file/d/1V55nizuwX01KtmFPmfrQ3UAkKtTArxWT/view?usp=sharing
+
+The demo video showcases:
+- User Authentication
+- PDF Upload
+- OCR using Tess4J
+- Google Gemini AI
+- AI-powered Question Answering
+- Knowledge Graph Generation
+- Dashboard Analytics
+- Document Management
 ---
 
 # 🎯 Problem Statement
@@ -195,7 +224,7 @@ IndustrialBrain-AI
 │   ├── package.json
 │   └── vite.config.js
 │
-├── backend/
+├── spring-backend/
 │   ├── src/
 │   ├── pom.xml
 │   └── uploads/
@@ -330,7 +359,7 @@ cd IndustrialBrain-AI
 ## Backend Setup
 
 ```bash
-cd backend
+cd spring-backend
 
 mvn clean install
 
@@ -457,9 +486,11 @@ This project is licensed under the MIT License.
 
 ---
 
-# 👨‍💻 Author
+# 👨‍💻 Developed By
 
 ## Sai Kumar Kadiri
+
+B.Tech Graduate Computer Science
 
 Aspiring Software Engineer
 
