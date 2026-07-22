@@ -69,6 +69,21 @@ The demo video showcases:
 - Document Management
 ---
 
+---
+
+# 📌 Deployment Note
+
+This application is deployed using the **free tiers of Render** (Spring Boot Backend) and **Neon PostgreSQL** (Database).
+
+To optimize resource usage, these services may enter an idle state after a period of inactivity. As a result, the **first request** (such as registration or login) may take longer while the backend service and database become active.
+
+Once the services are awake, all subsequent requests respond significantly faster.
+
+This behavior is expected for free-tier cloud deployments and is unrelated to the application's business logic or overall system performance.
+
+---
+
+
 # 🎯 Problem Statement
 
 Industrial organizations generate large volumes of technical manuals, maintenance reports, inspection documents, and engineering records.
